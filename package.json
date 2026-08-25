@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@geoapify/geocoder-autocomplete": "^3.0.1",
+    "@geoapify/react-geocoder-autocomplete": "^3.0.0",
+    "axios": "^1.18.1",
+    "maplibre-gl": "^5.24.0",
+    "react-router-dom": "^7.18.1"
+  }
+}
