@@ -1,0 +1,43 @@
+.home-card {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: auto;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 10px;
+  border: 1px solid rgba(15,23,42,0.06);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.08);
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.home-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(2,6,23,0.10);
+}
+
+.home-icon svg {
+  display: block;
+}
+
+/* Small screens: keep card aligned with the header action grid */
+@media (max-width: 640px) {
+  .home-icon {
+    display: none;
+  }
+
+  .home-card {
+    width: 100%;
+    max-width: none;
+    justify-content: center;
+    padding: 8px 6px;
+  }
+}

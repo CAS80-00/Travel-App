@@ -1,0 +1,242 @@
+.page-content {
+  padding-top: 140px; /* search bar height */
+}
+
+.city-page {
+  background: transparent;
+  overflow-x: hidden;
+  padding-top: 10px;
+  width: 100%;
+  padding-bottom: 40px;
+}
+
+.city-header {
+  width: 100%;
+  height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 40px;
+  color: white;
+  text-align: center;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 4px solid rgba(255, 255, 255, 0.4);
+  position: relative; /* allow absolute auth placement */
+}
+
+.city-header-title,
+.city-header-name {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+  margin: 0;
+  z-index: 2;
+}
+
+/* header auth placeholder - top-right on desktop */
+.header-auth {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+}
+
+.header-back {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* make AuthCard smaller in the header so it doesn't dominate */
+.header-auth .auth-card {
+  max-width: 320px;
+}
+
+/* Responsive behaviors */
+
+/* On narrower screens in landscape, shift header content to the left so the auth card doesn't overlap */
+@media (max-width: 980px) and (orientation: landscape) {
+  .city-header {
+    align-items: flex-start;
+    padding-left: 22px;
+    padding-right: 140px; /* leave space on right for auth card */
+    text-align: left;
+  }
+
+  .city-header-title,
+  .city-header-name {
+    margin-right: 10px;
+  }
+
+  .header-auth {
+    top: 12px;
+    right: 4px;
+    transform: translateX(-10px);
+  }
+
+  .header-back {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .header-back .back-card,
+  .header-back .home-card,
+  .header-back .dashboard-card,
+  .header-back .save-card {
+    width: auto;
+    flex: 0 0 auto;
+  }
+}
+
+/* On small mobile portrait, show auth card below the city name (make it static) */
+@media (max-width: 640px) and (orientation: portrait) {
+  .city-header {
+    align-items: center;
+    padding-left: 16px;
+    padding-right: 16px;
+    height: auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .header-auth {
+    position: static;
+    width: 100%;
+    display: block;
+    margin-top: 10px;
+  }
+
+  .header-auth .auth-card {
+    margin: 0 auto;
+    max-width: 360px;
+    width: calc(100% - 32px);
+  }
+
+  .header-back {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+    padding-bottom: 2px;
+  }
+
+  .header-back .back-card,
+  .header-back .home-card,
+  .header-back .dashboard-card,
+  .header-back .save-card {
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+      justify-content: center;
+      padding: 8px 6px;
+      font-size: 0.72rem;
+    }
+  }
+
+/* CARD WRAPPER STYLES */
+.card-container {
+  max-width: 900px;
+  margin: 30px auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/*COLLAPSABLE SECTION STYLES */
+.section {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: #f8fafc;
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-header:hover {
+  background-color: #f1f5f9;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #1e293b;
+}
+
+.accordion-icon {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/*SECTION CONTENT STYLES */
+.section-content {
+  display: block;
+  width: 100%;
+  padding: 16px 20px;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.section-content p,
+.section-content ul,
+.section-content ol,
+.section-content table,
+.section-content div {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.section-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.section-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.section-content table td,
+.section-content table th {
+  border: 1px solid #ddd;
+  padding: 6px;
+}
+
+.mw-editsection,
+.mw-editsection-bracket {
+  display: none !important;
+}
+
+/* Footer override for city page to use navy text (keep landing page footer unchanged) */
+.city-page .landing-footer {
+  color: #001a35;
+  text-shadow: none;
+}

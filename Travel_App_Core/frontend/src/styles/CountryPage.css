@@ -1,0 +1,295 @@
+/* PAGE BACKGROUND */
+.country-page {
+  padding: 20px 20px 40px;
+  background: transparent;
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* ⭐ FINAL OVERRIDE — UNSPLASH HEADER */
+.country-header {
+  width: 100%;
+  height: 260px !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  border-bottom: 4px solid rgba(0, 0, 0, 0.3);
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  position: relative !important;
+  margin-bottom: 30px !important;
+  padding: 0 !important;
+}
+
+/* TITLE */
+
+.country-header-title,
+.country-header h1,
+.country-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+  margin: 0;
+  z-index: 2;
+}
+
+/* Match the city page header typography exactly */
+.country-header .country-header-title,
+.country-header .city-header-title,
+.city-header .city-header-title {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  color: white !important;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7) !important;
+  margin: 0 !important;
+  line-height: 1.1 !important;
+  letter-spacing: normal !important;
+  z-index: 2;
+}
+
+.country-header .country-title,
+.country-header .city-header-name,
+.city-header .city-header-name {
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+  color: white !important;
+  text-shadow: 0 4px 13px rgba(0, 0, 0, 0.6) !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+  z-index: 2;
+}
+.header-back {
+  margin-top: 20px; /* keep your vertical spacing /
+display: flex;
+gap: 32px; / increase this value to add more horizontal space */
+  align-items: center;
+}
+
+/* On very large screens, city header uses slightly larger scale via clamp() in other styles; match that too */
+@media (min-width: 1200px) {
+  .country-header .city-header-title,
+  .country-header .country-header-title {
+    font-size: clamp(2rem, 2.5vw, 3rem);
+  }
+
+  .country-header .city-header-name,
+  .country-header .country-title {
+    font-size: clamp(1.05rem, 1.2vw, 1.5rem);
+  }
+}
+
+/* header auth placeholder */
+.header-auth {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  z-index: 3;
+}
+
+.header-back {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.header-auth .auth-card {
+  max-width: 320px;
+}
+
+@media (max-width: 980px) and (orientation: landscape) {
+  .country-header {
+    align-items: flex-start !important;
+    padding-left: 22px !important;
+    padding-right: 140px !important; /* leave space on right for auth card */
+    text-align: left !important;
+  }
+
+  .header-auth {
+    top: 12px;
+    right: 4px;
+    transform: translateX(-10px);
+  }
+
+  .header-back {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .header-back .back-card,
+  .header-back .home-card,
+  .header-back .dashboard-card,
+  .header-back .save-card {
+    width: auto;
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 640px) and (orientation: portrait) {
+  .country-header {
+    align-items: center !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    height: auto !important;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+    text-align: center !important;
+    gap: 8px !important;
+  }
+
+  .header-auth {
+    position: static !important;
+    width: 100% !important;
+    display: block !important;
+    margin-top: 10px !important;
+  }
+
+  .header-auth .auth-card {
+    margin: 0 auto !important;
+    max-width: 360px !important;
+    width: calc(100% - 32px) !important;
+  }
+
+  .header-back {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+    padding-bottom: 2px;
+  }
+
+  .header-back .back-card,
+  .header-back .home-card,
+  .header-back .dashboard-card,
+  .header-back .save-card {
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+      justify-content: center;
+      padding: 8px 6px;
+      font-size: 0.72rem;
+    }
+  }
+
+/* SUBTITLE */
+.subtitle {
+  font-size: 1.1rem;
+  color: white;
+  margin-top: 8px;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
+  z-index: 2;
+}
+
+/* FALLBACK NAVY */
+.country-header.fallback {
+  background: linear-gradient(to bottom, #001f3f, #001a35);
+}
+
+/* ⭐ CARD WRAPPER STYLES */
+.card-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.country-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ⭐ COLLAPSABLE SECTION CARD */
+.country-section-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: #f8fafc;
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-header:hover {
+  background-color: #f1f5f9;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 18px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.accordion-icon {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* ⭐ SECTION CONTENT STYLES */
+.section-content {
+  display: block;
+  width: 100%;
+  padding: 16px 20px;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.section-content p,
+.section-content ul,
+.section-content ol,
+.section-content table,
+.section-content div {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.section-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.section-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.section-content table td,
+.section-content table th {
+  border: 1px solid #ddd;
+  padding: 6px;
+}
+
+.mw-editsection,
+.mw-editsection-bracket {
+  display: none !important;
+}
+
+/* Footer override for country page to use navy text (keep landing page footer unchanged) */
+.country-page .landing-footer {
+  color: #001a35;
+  text-shadow: none;
+}

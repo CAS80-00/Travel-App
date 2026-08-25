@@ -1,0 +1,308 @@
+/* AUTH CARD CONTAINER */
+.auth-card {
+  position: relative;
+  width: 100% !important;
+  max-width: 300px !important; /* spread out horizontally */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  color: #1e293b;
+  font-family: "Inter", sans-serif;
+  z-index: 10;
+}
+
+/* TABS HEADER */
+.auth-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 14px 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-tab.active {
+  background: #ffffff;
+  color: #0f172a;
+  border-bottom: 2px solid #2563eb;
+}
+
+/* CARD BODY & FORMS */
+.auth-card-body {
+  padding: 28px 24px; /* Increased inner padding for a roomier feel */
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Increased vertical spacing */
+}
+
+/* INLINE LOGIN LAYOUT (Email, Password, Button side-by-side) */
+.inline-login-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px; /* Increased gap between inputs and button */
+  width: 100%;
+}
+
+.inline-login-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.inline-login-row input:focus {
+  border-color: #2563eb;
+}
+
+/* REGISTER FORM LAYOUT */
+.form-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  width: 100%;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.form-group input {
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  border-color: #2563eb;
+}
+
+/* TAGLINE MESSAGE */
+.auth-tagline {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  margin: 4px 0 0 0;
+}
+
+/* SUBMIT BUTTONS */
+.auth-btn {
+  padding: 10px 20px;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.inline-btn {
+  padding: 10px 22px;
+}
+
+.auth-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.auth-card-logged-in {
+  width: 100% !important;
+  max-width: 300px !important;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-loggedin-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.auth-loggedin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-welcome {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: left;
+}
+
+.dashboard-btn,
+.logout-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+
+.dashboard-btn {
+  background: #dbeafe;
+  color: #0f172a;
+}
+
+.logout-btn {
+  background: #0f172a;
+  color: white;
+}
+
+@media (min-width: 641px) {
+  .auth-loggedin-actions {
+    flex-direction: row;
+  }
+
+  .dashboard-btn,
+  .logout-btn {
+    flex: 1 1 0;
+    width: auto;
+  }
+}
+
+.auth-inactivity-prompt {
+  margin-top: 12px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.auth-inactivity-prompt p {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  color: #0f172a;
+}
+
+.auth-inactivity-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.auth-inactivity-actions button {
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-inactivity-actions button:first-child {
+  background: #2563eb;
+  color: white;
+}
+
+.auth-inactivity-actions button:last-child {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.auth-status {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.auth-status.success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+}
+
+.auth-status.error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #991b1b;
+}
+
+@media (max-width: 640px) {
+  .auth-card-logged-in {
+    max-width: 240px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .auth-loggedin-row {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .auth-loggedin-actions {
+    width: 100%;
+  }
+
+  .auth-welcome {
+    width: 100%;
+    text-align: center;
+    font-size: 0.82rem;
+  }
+
+  .dashboard-btn,
+  .logout-btn {
+    width: 100%;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape), (max-height: 500px) {
+  .auth-card-logged-in {
+    max-width: 220px !important;
+    margin-left: -24px;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 460px) and (orientation: landscape) {
+  .auth-card-logged-in {
+    margin-left: -12px;
+  }
+}
+
+@media (max-width: 390px) and (orientation: landscape) {
+  .auth-card-logged-in {
+    margin-left: -18px;
+  }
+}

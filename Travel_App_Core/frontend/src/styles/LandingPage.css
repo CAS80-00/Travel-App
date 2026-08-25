@@ -1,0 +1,319 @@
+/* ==========================================
+   PAGE CONTAINER
+   ========================================== */
+.landing-page {
+  min-height: 100vh;
+  min-height: 100dvh; /* Handles dynamic mobile URL bars */
+  width: 100%;
+
+  /* FULL BACKGROUND COVERAGE FIXES */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* Keeps image fixed across scrollable areas */
+
+  transition: background-image 1.5s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Horizontally centers content */
+  justify-content: space-between;
+  position: relative;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   HEADER STYLES (DESKTOP)
+   ========================================== */
+.landing-header {
+  width: 100%;
+  text-align: center;
+  padding-top: 1rem;
+  padding-bottom: 0.5rem;
+  box-sizing: border-box;
+}
+
+.landing-header h1 {
+  font-size: 2.8rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  margin: 0;
+  text-align: center;
+}
+
+.landing-tagline {
+  margin-top: 0.3rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-align: center;
+  color: white;
+  text-shadow: 0 4px 13px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================
+   SEARCH BAR CONTAINER & GEOAPIFY FIXES
+   ========================================== */
+.landing-body {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px auto;
+  padding: 0 16px; /* Safe padding for mobile edges */
+  box-sizing: border-box;
+}
+
+/* Force Geoapify wrapper within container bounds */
+.landing-body .geocoder-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto;
+  box-sizing: border-box !important;
+}
+
+/* Prevent Input from overflowing due to internal padding */
+.landing-body .geoapify-autocomplete-input {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important; /* CRITICAL: Includes padding in width calculation */
+  padding: 12px 16px !important;
+  font-size: 1rem !important;
+  border-radius: 8px !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Hide default clear button */
+.geoapify-close-button {
+  display: none !important;
+}
+
+/* Dropdown styling & bounds */
+.geoapify-autocomplete-items {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  background: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  padding: 0 !important;
+  margin-top: 4px !important;
+  z-index: 99999 !important;
+}
+
+.geoapify-autocomplete-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 12px !important;
+  background: white !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+}
+
+.geoapify-autocomplete-item:hover {
+  background: #f0f0f0 !important;
+}
+
+/* ==========================================
+   AUTH CARD WRAPPER (DESKTOP: TOP RIGHT)
+   ========================================== */
+.landing-auth-wrapper {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+  transform: translateX(-26px);
+}
+
+.landing-auth-wrapper .auth-card {
+  width: 300px;
+  font-size: 0.85rem;
+}
+
+.landing-auth-wrapper .auth-card-body {
+  padding: 12px 16px;
+}
+
+.landing-auth-wrapper .form-group input {
+  padding: 5px 8px;
+  font-size: 0.85rem;
+}
+
+.landing-auth-wrapper .auth-tab {
+  padding: 8px 0;
+  font-size: 0.85rem;
+}
+
+.landing-auth-wrapper .auth-btn {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+/* ==========================================
+   FOOTER STYLES
+   ========================================== */
+.landing-footer {
+  text-align: center;
+  padding: 10px;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+/* ==========================================
+   MOBILE PORTRAIT BREAKPOINT (< 768px)
+   ========================================== */
+@media (max-width: 768px) and (orientation: portrait) {
+  .landing-header h1 {
+    font-size: 2rem;
+  }
+
+  .landing-tagline {
+    font-size: 1rem;
+  }
+
+  .landing-body {
+    padding: 0 15px;
+    margin: 15px 0;
+  }
+
+  /* Moves Auth Card below search bar on mobile portrait screens */
+  .landing-auth-wrapper {
+    position: relative;
+    top: 0;
+    right: 0;
+    left: 0;
+    margin: 10px auto 20px auto;
+    width: 90%;
+    max-width: 320px;
+    display: flex;
+    justify-content: center;
+    transform: none;
+  }
+
+  .landing-auth-wrapper .auth-card {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* ==========================================
+   LANDSCAPE & SHORT SCREEN FIXES
+   ========================================== */
+/* Default mobile/short-screen adjustments (keeps background-attachment stable on mobile) */
+@media (max-width: 900px) and (orientation: landscape), (max-height: 500px) {
+  .landing-page {
+    min-height: 100vh;
+    height: auto;
+    background-attachment: scroll; /* Prevents mobile browser background rendering bugs */
+  }
+
+  /* Reserves space on right so header text never collides with Auth Card */
+  .landing-header {
+    padding-top: 0.5rem;
+    padding-right: 300px;
+    text-align: left;
+    padding-left: 1rem;
+    align-items: flex-start;
+  }
+
+  .landing-header h1 {
+    font-size: 1.8rem;
+    text-align: left;
+  }
+
+  .landing-tagline {
+    font-size: 0.95rem;
+    text-align: left;
+  }
+
+  /* Keeps Auth Card positioned top-right in landscape mode */
+  .landing-auth-wrapper {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.3rem;
+    margin: 0;
+    transform: translateX(-12px);
+  }
+
+  .landing-auth-wrapper .auth-card {
+    width: 240px;
+  }
+
+  .landing-body {
+    margin: 15px auto;
+  }
+}
+
+/* Mirror country/city page mobile portrait behavior for consistency */
+@media (max-width: 640px) and (orientation: portrait) {
+  .landing-header {
+    align-items: center !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    height: auto !important;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+    text-align: center !important;
+    gap: 8px !important;
+  }
+
+  .landing-auth-wrapper {
+    position: static !important;
+    width: 100% !important;
+    display: block !important;
+    margin-top: 10px !important;
+  }
+
+  .landing-auth-wrapper .auth-card {
+    margin: 0 auto !important;
+    max-width: 360px !important;
+    width: calc(100% - 32px) !important;
+  }
+
+  .landing-header h1 {
+    font-size: clamp(1.6rem, 5vw, 2rem) !important;
+  }
+
+  .landing-tagline {
+    font-size: 1rem !important;
+  }
+
+  .landing-body {
+    margin: 12px 0 !important;
+    padding: 0 16px !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Additional landscape breakpoint matching CountryPage for smoother transition */
+@media (max-width: 980px) and (orientation: landscape) {
+  .landing-header {
+    align-items: flex-start !important;
+    padding-left: 22px !important;
+    padding-right: 140px !important; /* leave space on right for auth card */
+    text-align: left !important;
+  }
+
+  .landing-auth-wrapper {
+    top: 12px;
+    right: 4px;
+    transform: translateX(-10px);
+  }
+
+  .landing-body {
+    margin: 15px auto;
+  }
+}
+
+/* Ensure large screens keep the fixed background for visual effect */
+@media (min-width: 900px) {
+  .landing-page {
+    background-attachment: fixed;
+  }
+}
