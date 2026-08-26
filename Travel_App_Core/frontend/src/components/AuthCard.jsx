@@ -6,12 +6,17 @@ const API_BASE = "http://localhost:4000";
 const TWENTY_EIGHT_MINUTES = 28 * 60 * 1000;
 const TWO_MINUTES = 2 * 60 * 1000;
 
+//**state & initializations */
+
 const AuthCard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("login");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [statusMessage, setStatusMessage] = useState({ text: "", type: "success" });
+  const [statusMessage, setStatusMessage] = useState({
+    text: "",
+    type: "success",
+  });
   const [showInactivityPrompt, setShowInactivityPrompt] = useState(false);
 
   const inactivityTimerRef = useRef(null);
@@ -25,9 +30,11 @@ const AuthCard = () => {
     password: "",
     confirmPassword: "",
   });
-
+  //**session cleanup */
+  //**removes auth token, while retaining users fisrt name, status alert clearing after 3 secs */
   const clearSessionStorage = useCallback(() => {
-    const preservedName = user?.firstName || localStorage.getItem("travelAppUserName") || "";
+    const preservedName =
+      user?.firstName || localStorage.getItem("travelAppUserName") || "";
 
     localStorage.removeItem("travelAppLoggedIn");
     localStorage.removeItem("travelAppToken");
@@ -46,6 +53,8 @@ const AuthCard = () => {
     }, 3000);
   }, []);
 
+  //**Session Persistence & Logout Handlers */ */
+
   const persistSession = (sessionUser, token) => {
     localStorage.setItem("travelAppLoggedIn", "true");
     localStorage.setItem("travelAppToken", token);
@@ -55,34 +64,40 @@ const AuthCard = () => {
     setIsLoggedIn(true);
   };
 
-  const handleLogout = useCallback(async (skipConfirm = false) => {
-    if (!skipConfirm) {
-      const shouldLogout = window.confirm("Are you sure you want to log out?");
-      if (!shouldLogout) return;
-    }
-
-    const token = localStorage.getItem("travelAppToken");
-
-    if (token) {
-      try {
-        await fetch(`${API_BASE}/api/logout`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
-      } catch (error) {
-        console.error("Logout request failed:", error);
+  const handleLogout = useCallback(
+    async (skipConfirm = false) => {
+      if (!skipConfirm) {
+        const shouldLogout = window.confirm(
+          "Are you sure you want to log out?",
+        );
+        if (!shouldLogout) return;
       }
-    }
 
-    clearSessionStorage();
-    setUser(null);
-    setIsLoggedIn(false);
-    setShowInactivityPrompt(false);
-    setActiveTab("login");
-    showMessage("You have been logged out.", "success");
-  }, [clearSessionStorage, showMessage]);
+      const token = localStorage.getItem("travelAppToken");
 
+      if (token) {
+        try {
+          await fetch(`${API_BASE}/api/logout`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          });
+        } catch (error) {
+          console.error("Logout request failed:", error);
+        }
+      }
+
+      clearSessionStorage();
+      setUser(null);
+      setIsLoggedIn(false);
+      setShowInactivityPrompt(false);
+      setActiveTab("login");
+      showMessage("You have been logged out.", "success");
+    },
+    [clearSessionStorage, showMessage],
+  );
+
+  //**Inactivity Timer Handlers */
   const clearInactivityTimers = useCallback(() => {
     if (inactivityTimerRef.current) {
       window.clearTimeout(inactivityTimerRef.current);
@@ -107,22 +122,28 @@ const AuthCard = () => {
     }, TWENTY_EIGHT_MINUTES);
   }, [clearInactivityTimers, handleLogout, isLoggedIn]);
 
-  const handleInactivityChoice = useCallback((keepLoggedIn) => {
-    clearInactivityTimers();
+  const handleInactivityChoice = useCallback(
+    (keepLoggedIn) => {
+      clearInactivityTimers();
 
-    if (keepLoggedIn) {
-      setShowInactivityPrompt(false);
-      startInactivityTimer();
-      return;
-    }
+      if (keepLoggedIn) {
+        setShowInactivityPrompt(false);
+        startInactivityTimer();
+        return;
+      }
 
-    handleLogout(true);
-  }, [clearInactivityTimers, handleLogout, startInactivityTimer]);
+      handleLogout(true);
+    },
+    [clearInactivityTimers, handleLogout, startInactivityTimer],
+  );
+
+  //**Lifecycle Effects (Initial Load & User Activity Listeners) */
 
   useEffect(() => {
     const storedUser = localStorage.getItem("travelAppUser");
     const token = localStorage.getItem("travelAppToken");
-    const isAuth = localStorage.getItem("travelAppLoggedIn") === "true" && Boolean(token);
+    const isAuth =
+      localStorage.getItem("travelAppLoggedIn") === "true" && Boolean(token);
 
     if (isAuth && storedUser) {
       try {
@@ -150,10 +171,14 @@ const AuthCard = () => {
     events.forEach((eventName) => window.addEventListener(eventName, reset));
 
     return () => {
-      events.forEach((eventName) => window.removeEventListener(eventName, reset));
+      events.forEach((eventName) =>
+        window.removeEventListener(eventName, reset),
+      );
       clearInactivityTimers();
     };
   }, [clearInactivityTimers, isLoggedIn, startInactivityTimer]);
+
+  //**Form Handlers */
 
   const handleLoginChange = (e) => {
     setLoginData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -219,15 +244,23 @@ const AuthCard = () => {
         password: "",
         confirmPassword: "",
       });
-      showMessage("Successfully Registration. Log in and start building itineraries", "success");
+      showMessage(
+        "Successfully Registration. Log in and start building itineraries",
+        "success",
+      );
     } catch (error) {
       console.error("Registration error:", error);
       showMessage("Unable to connect to the server.", "error");
     }
   };
 
+  //**Render Logic */
+  //** */
+
   if (isLoggedIn && user) {
     return (
+      // Renders Welcome banner, Dashboard navigation button, Logout button,
+      // and optional Inactivity Prompt modal ("Are you still logged in?")
       <div className="auth-card auth-card-logged-in">
         <div className="auth-loggedin-row">
           <p className="auth-welcome">Welcome, {user.firstName}</p>
@@ -239,7 +272,11 @@ const AuthCard = () => {
             >
               Dashboard
             </button>
-            <button type="button" className="logout-btn" onClick={() => handleLogout(false)}>
+            <button
+              type="button"
+              className="logout-btn"
+              onClick={() => handleLogout(false)}
+            >
               Log Out
             </button>
           </div>
@@ -249,20 +286,35 @@ const AuthCard = () => {
           <div className="auth-inactivity-prompt">
             <p>Are you still logged in?</p>
             <div className="auth-inactivity-actions">
-              <button type="button" onClick={() => handleInactivityChoice(true)}>Yes</button>
-              <button type="button" onClick={() => handleInactivityChoice(false)}>No</button>
+              <button
+                type="button"
+                onClick={() => handleInactivityChoice(true)}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => handleInactivityChoice(false)}
+              >
+                No
+              </button>
             </div>
           </div>
         )}
 
         {statusMessage.text && (
-          <div className={`auth-status ${statusMessage.type}`}>{statusMessage.text}</div>
+          <div className={`auth-status ${statusMessage.type}`}>
+            {statusMessage.text}
+          </div>
         )}
       </div>
     );
   }
 
   return (
+    // Renders Tab switcher ("Log In" vs "Register"),
+    // Form inputs (Login form or Registration form dependent on activeTab state),
+    // and Status notification alert box
     <div className="auth-card">
       <div className="auth-tabs">
         <button
@@ -377,7 +429,9 @@ const AuthCard = () => {
       </div>
 
       {statusMessage.text && (
-        <div className={`auth-status ${statusMessage.type}`}>{statusMessage.text}</div>
+        <div className={`auth-status ${statusMessage.type}`}>
+          {statusMessage.text}
+        </div>
       )}
     </div>
   );

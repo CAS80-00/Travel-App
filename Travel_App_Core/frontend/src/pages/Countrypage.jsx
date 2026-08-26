@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchUnsplashPhoto } from "../api/unsplash"; // make sure this path is correct
+import { fetchUnsplashPhoto } from "../api/unsplash";
 import "../styles/CountryPage.css";
 import "../styles/LandingPage.css";
 import AuthCard from "../components/AuthCard";
@@ -82,7 +82,9 @@ const CountryPage = () => {
               : `url(${headerImage})`,
         }}
       >
-        <h1 className="country-header-title city-header-title">Travel App by CAS</h1>
+        <h1 className="country-header-title city-header-title">
+          Travel App by CAS
+        </h1>
         <h1 className="country-title landing-tagline">{wiki.title}</h1>
 
         {/* Back + Home buttons below the country name */}

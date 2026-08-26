@@ -23,7 +23,7 @@ function cleanHTML(html) {
     .replace(/<!--[\s\S]*?-->/g, "")
     .trim();
 }
-
+//**express middlewares **//
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -33,7 +33,7 @@ const bindParams = (sql, params = []) => {
   const sqlWithBindings = sql.replace(/\?/g, () => `$${index++}`);
   return { text: sqlWithBindings, values: params };
 };
-
+//**run core tables */
 const initializeDatabase = async () => {
   try {
     await pool.query(`
@@ -82,10 +82,16 @@ const initializeDatabase = async () => {
 
 initializeDatabase();
 
+//**Database wrapper helpers */
+
 const runDb = async (sql, params = []) => {
   const query = bindParams(sql, params);
   const result = await pool.query(query.text, query.values);
-  return { id: result.rows[0]?.id ?? null, rows: result.rows, changes: result.rowCount };
+  return {
+    id: result.rows[0]?.id ?? null,
+    rows: result.rows,
+    changes: result.rowCount,
+  };
 };
 
 const getDb = async (sql, params = []) => {
@@ -99,6 +105,8 @@ const allDb = async (sql, params = []) => {
   const result = await pool.query(query.text, query.values);
   return result.rows;
 };
+
+//**token extractor helper */
 
 const getToken = (req) => {
   const authHeader = req.headers.authorization || "";
@@ -117,6 +125,8 @@ const getToken = (req) => {
   return null;
 };
 
+//**user auth & session validator */
+
 const getUserFromToken = async (token) => {
   if (!token) return null;
 
@@ -132,10 +142,10 @@ const getUserFromToken = async (token) => {
 
     if (!session) return null;
 
-    await runDb(
-      `UPDATE sessions SET last_activity = ? WHERE token = ?`,
-      [new Date().toISOString(), token],
-    );
+    await runDb(`UPDATE sessions SET last_activity = ? WHERE token = ?`, [
+      new Date().toISOString(),
+      token,
+    ]);
 
     return {
       id: session.user_id,
@@ -151,12 +161,17 @@ const getUserFromToken = async (token) => {
   }
 };
 
+//**health check endpoint */
+
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+//**user registration endpoint */
+
 app.post("/api/register", async (req, res) => {
-  const { firstName, lastName, email, password, confirmPassword } = req.body || {};
+  const { firstName, lastName, email, password, confirmPassword } =
+    req.body || {};
 
   if (!firstName || !lastName || !email || !password || !confirmPassword) {
     return res.status(400).json({
@@ -179,7 +194,9 @@ app.post("/api/register", async (req, res) => {
     });
   }
 
-  const existingUser = await getDb("SELECT id FROM users WHERE email = ?", [email.trim().toLowerCase()]);
+  const existingUser = await getDb("SELECT id FROM users WHERE email = ?", [
+    email.trim().toLowerCase(),
+  ]);
   if (existingUser) {
     return res.status(409).json({
       success: false,
@@ -193,12 +210,18 @@ app.post("/api/register", async (req, res) => {
       `INSERT INTO users (first_name, last_name, email, password_hash)
        VALUES (?, ?, ?, ?)
        RETURNING id`,
-      [firstName.trim(), lastName.trim(), email.trim().toLowerCase(), passwordHash],
+      [
+        firstName.trim(),
+        lastName.trim(),
+        email.trim().toLowerCase(),
+        passwordHash,
+      ],
     );
 
     return res.status(201).json({
       success: true,
-      message: "Successfully Registration. Log in and start building itineraries",
+      message:
+        "Successfully Registration. Log in and start building itineraries",
       user: {
         id: inserted.id,
         firstName: firstName.trim(),
@@ -215,6 +238,8 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+//**user login endpoint */
+
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body || {};
 
@@ -225,7 +250,9 @@ app.post("/api/login", async (req, res) => {
     });
   }
 
-  const user = await getDb("SELECT * FROM users WHERE email = ?", [email.trim().toLowerCase()]);
+  const user = await getDb("SELECT * FROM users WHERE email = ?", [
+    email.trim().toLowerCase(),
+  ]);
   if (!user) {
     return res.status(401).json({
       success: false,
@@ -241,11 +268,9 @@ app.post("/api/login", async (req, res) => {
     });
   }
 
-  const token = jwt.sign(
-    { userId: user.id, email: user.email },
-    JWT_SECRET,
-    { expiresIn: "28m" },
-  );
+  const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+    expiresIn: "28m",
+  });
   const expiresAt = new Date(Date.now() + 28 * 60 * 1000).toISOString();
 
   await runDb(
@@ -269,6 +294,8 @@ app.post("/api/login", async (req, res) => {
   });
 });
 
+//**user logout endpoint */
+
 app.post("/api/logout", async (req, res) => {
   const token = getToken(req);
 
@@ -279,12 +306,16 @@ app.post("/api/logout", async (req, res) => {
   return res.json({ success: true, message: "Logged out successfully." });
 });
 
+//**get current user endpoint//profile */
+
 app.get("/api/me", async (req, res) => {
   const token = getToken(req);
   const user = await getUserFromToken(token);
 
   if (!user) {
-    return res.status(401).json({ success: false, message: "Not authenticated." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated." });
   }
 
   return res.json({ success: true, user });
@@ -296,40 +327,54 @@ app.post("/api/change-password", async (req, res) => {
   const { newPassword } = req.body || {};
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "Authentication required." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Authentication required." });
   }
 
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
-    return res.status(401).json({ success: false, message: "Session expired or invalid." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Session expired or invalid." });
   }
 
   if (!newPassword || typeof newPassword !== "string") {
-    return res.status(400).json({ success: false, message: "New password is required." });
+    return res
+      .status(400)
+      .json({ success: false, message: "New password is required." });
   }
 
   if (newPassword.length < 8) {
-    return res.status(400).json({ success: false, message: "Password must be at least 8 characters long." });
+    return res.status(400).json({
+      success: false,
+      message: "Password must be at least 8 characters long.",
+    });
   }
 
   try {
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
-    await runDb(
-      `UPDATE users SET password_hash = ? WHERE id = ?`,
-      [passwordHash, authenticatedUser.id],
-    );
+    await runDb(`UPDATE users SET password_hash = ? WHERE id = ?`, [
+      passwordHash,
+      authenticatedUser.id,
+    ]);
 
     // Invalidate other sessions for this user (keep current session token valid)
-    await runDb(
-      `DELETE FROM sessions WHERE user_id = ? AND token != ?`,
-      [authenticatedUser.id, token],
-    );
+    await runDb(`DELETE FROM sessions WHERE user_id = ? AND token != ?`, [
+      authenticatedUser.id,
+      token,
+    ]);
 
-    return res.json({ success: true, message: "Password changed successfully." });
+    return res.json({
+      success: true,
+      message: "Password changed successfully.",
+    });
   } catch (error) {
     console.error("Change password error:", error);
-    return res.status(500).json({ success: false, message: "Failed to change password." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to change password." });
   }
 });
 
@@ -338,40 +383,55 @@ app.delete("/api/profile", async (req, res) => {
   const token = getToken(req);
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "Authentication required." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Authentication required." });
   }
 
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
-    return res.status(401).json({ success: false, message: "Session expired or invalid." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Session expired or invalid." });
   }
 
   try {
     // Delete user; ON DELETE CASCADE will remove sessions, saved_places, itineraries
     await runDb(`DELETE FROM users WHERE id = ?`, [authenticatedUser.id]);
 
-    return res.json({ success: true, message: "Profile deleted successfully." });
+    return res.json({
+      success: true,
+      message: "Profile deleted successfully.",
+    });
   } catch (error) {
     console.error("Delete profile error:", error);
-    return res.status(500).json({ success: false, message: "Failed to delete profile." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to delete profile." });
   }
 });
-
+//**save place endpoints POST, DELETE AND GET */
 app.post("/api/save-place", async (req, res) => {
   const token = getToken(req);
   const { type, name } = req.body || {};
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "Login required to save places." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Login required to save places." });
   }
 
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
-    return res.status(401).json({ success: false, message: "Session expired." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Session expired." });
   }
 
   if (!type || !name) {
-    return res.status(400).json({ success: false, message: "Place details are required." });
+    return res
+      .status(400)
+      .json({ success: false, message: "Place details are required." });
   }
 
   try {
@@ -394,7 +454,9 @@ app.post("/api/save-place", async (req, res) => {
     });
   } catch (error) {
     console.error("Save place error:", error);
-    return res.status(500).json({ success: false, message: "Unable to save place." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to save place." });
   }
 });
 
@@ -403,16 +465,23 @@ app.delete("/api/save-place", async (req, res) => {
   const { type, name } = req.body || {};
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "Login required to delete saved places." });
+    return res.status(401).json({
+      success: false,
+      message: "Login required to delete saved places.",
+    });
   }
 
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
-    return res.status(401).json({ success: false, message: "Session expired." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Session expired." });
   }
 
   if (!type || !name) {
-    return res.status(400).json({ success: false, message: "Place details are required." });
+    return res
+      .status(400)
+      .json({ success: false, message: "Place details are required." });
   }
 
   try {
@@ -433,7 +502,9 @@ app.delete("/api/save-place", async (req, res) => {
     });
   } catch (error) {
     console.error("Delete save error:", error);
-    return res.status(500).json({ success: false, message: "Unable to remove place." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to remove place." });
   }
 });
 
@@ -453,7 +524,7 @@ app.get("/api/saved-places", async (req, res) => {
   return res.json({ success: true, savedPlaces });
 });
 
-// Itineraries Endpoints
+// Itineraries Endpoints GET, POST AND DELETE//
 app.get("/api/itineraries", async (req, res) => {
   const token = getToken(req);
   const authenticatedUser = await getUserFromToken(token);
@@ -470,7 +541,9 @@ app.get("/api/itineraries", async (req, res) => {
     return res.json({ success: true, itineraries });
   } catch (error) {
     console.error("Get itineraries error:", error);
-    return res.status(500).json({ success: false, message: "Unable to fetch itineraries." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to fetch itineraries." });
   }
 });
 
@@ -479,16 +552,23 @@ app.post("/api/itineraries", async (req, res) => {
   const { name, points } = req.body || {};
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "Login required to save itineraries." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Login required to save itineraries." });
   }
 
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
-    return res.status(401).json({ success: false, message: "Session expired." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Session expired." });
   }
 
   if (!name || !points) {
-    return res.status(400).json({ success: false, message: "Itinerary name and points are required." });
+    return res.status(400).json({
+      success: false,
+      message: "Itinerary name and points are required.",
+    });
   }
 
   try {
@@ -496,7 +576,11 @@ app.post("/api/itineraries", async (req, res) => {
       `INSERT INTO itineraries (user_id, name, points)
        VALUES (?, ?, ?)
        ON CONFLICT (user_id, name) DO UPDATE SET points = EXCLUDED.points`,
-      [authenticatedUser.id, name, typeof points === "string" ? points : JSON.stringify(points)],
+      [
+        authenticatedUser.id,
+        name,
+        typeof points === "string" ? points : JSON.stringify(points),
+      ],
     );
 
     const itineraries = await allDb(
@@ -511,7 +595,9 @@ app.post("/api/itineraries", async (req, res) => {
     });
   } catch (error) {
     console.error("Save itinerary error:", error);
-    return res.status(500).json({ success: false, message: "Unable to save itinerary." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to save itinerary." });
   }
 });
 
@@ -520,23 +606,30 @@ app.delete("/api/itineraries", async (req, res) => {
   const { name } = req.body || {};
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "Login required to delete itineraries." });
+    return res.status(401).json({
+      success: false,
+      message: "Login required to delete itineraries.",
+    });
   }
 
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
-    return res.status(401).json({ success: false, message: "Session expired." });
+    return res
+      .status(401)
+      .json({ success: false, message: "Session expired." });
   }
 
   if (!name) {
-    return res.status(400).json({ success: false, message: "Itinerary name is required." });
+    return res
+      .status(400)
+      .json({ success: false, message: "Itinerary name is required." });
   }
 
   try {
-    await runDb(
-      `DELETE FROM itineraries WHERE user_id = ? AND name = ?`,
-      [authenticatedUser.id, name],
-    );
+    await runDb(`DELETE FROM itineraries WHERE user_id = ? AND name = ?`, [
+      authenticatedUser.id,
+      name,
+    ]);
 
     const itineraries = await allDb(
       `SELECT * FROM itineraries WHERE user_id = ? ORDER BY created_at DESC`,
@@ -550,11 +643,14 @@ app.delete("/api/itineraries", async (req, res) => {
     });
   } catch (error) {
     console.error("Delete itinerary error:", error);
-    return res.status(500).json({ success: false, message: "Unable to delete itinerary." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Unable to delete itinerary." });
   }
 });
 
-//City Page
+//City Page GET from Wikivoyage API//
+
 app.get("/api/wikivoyage/:city", async (req, res) => {
   const city = req.params.city;
 
@@ -610,7 +706,8 @@ app.get("/api/wikivoyage/:city", async (req, res) => {
   }
 });
 
-//CountryPage
+//CountryPage GET from Wikivoyage API//
+
 app.get("/api/wikivoyage-country/:country", async (req, res) => {
   const country = req.params.country;
 
@@ -670,5 +767,7 @@ app.get("/api/wikivoyage-country/:country", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch country data" });
   }
 });
+
+//**server start at port 4000 */
 
 app.listen(4000, () => console.log("Backend running on port 4000"));
