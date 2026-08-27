@@ -6,6 +6,9 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import pool from "./db/index.js";
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 // Import newly added query helpers
 import { createCity, getCityById, searchCities } from './db/queries/cities.js';
@@ -13,6 +16,10 @@ import { createPlace, getPlaceById, searchPlacesByName } from './db/queries/plac
 import { createRoute, getRoutesByUser, deleteRoute } from './db/queries/routes.js';
 import { addItineraryItem, getItemsForItinerary, deleteItineraryItem } from './db/queries/itinerary_items.js';
 import { createPin, getPinsByUser, deletePin } from './db/queries/pins.js';
+
+// Compute __dirname in ES module context
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -938,6 +945,18 @@ app.get("/api/wikivoyage-country/:country", async (req, res) => {
   }
 });
 
-//**server start at port 4000 */
+// Serve frontend build (if present) so GET / returns the React app
+const buildPath = path.join(__dirname, '..', 'frontend', 'build');
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
+  // Return index.html for any unknown route (SPA fallback)
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
+} else {
+  console.log('Frontend build not found at', buildPath);
+}
 
-app.listen(4000, () => console.log("Backend running on port 4000"));
+//**server start at port 4000 */
+app.listen(4000, () => console.log('Backend running on port 4000'));
+
