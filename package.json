@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "node Travel_App_Core/backend/server.js",
+    "postinstall": "npm --prefix Travel_App_Core/frontend install",
+    "start": "npm --prefix Travel_App_Core/frontend run build && node Travel_App_Core/backend/server.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
