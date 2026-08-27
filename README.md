@@ -41,57 +41,70 @@ Notes about schema
 Architecture diagram (logical)
 -----------------------------
 <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/7538e791-b152-49f7-abe3-c9601f1101b5" />
-Travelapp
-├─ README.md
-├─ package.json
-├─ Doc
-│ ├─ folder-tree.svg
-│ ├─ folder-architecture.mmd
-│ └─ folder-architecture.dot
-├─ Travel_App_Core
-│ ├─ backend
-│ │ ├─ server.js
-│ │ ├─ package.json
-│ │ ├─ schema.sql
-│ │ ├─ usersRouter.js
-│ │ ├─ middleware
-│ │ │ └─ requireUser.js
-│ │ ├─ db
-│ │ │ ├─ index.js
-│ │ │ └─ queries
-│ │ │ ├─ users.js
-│ │ │ ├─ sessions.js
-│ │ │ ├─ saved_places.js
-│ │ │ ├─ itineraries.js
-│ │ │ ├─ itinerary_items.js
-│ │ │ ├─ cities.js
-│ │ │ ├─ places.js
-│ │ │ ├─ routes.js
-│ │ │ └─ pins.js
-│ │ └─ scripts
-│ │ ├─ seed.js
-│ │ └─ create_user.js
-│ └─ frontend
-│ ├─ package.json
-│ ├─ .env (gitignored; contains REACT_APP_* keys)
-│ ├─ public
-│ │ └─ index.html
-│ ├─ src
-│ │ ├─ components
-│ │ │ ├─ AuthCard.jsx
-│ │ │ ├─ SaveButton.jsx
-│ │ │ └─ SearchBar.jsx (and other components)
-│ │ ├─ pages
-│ │ │ ├─ DashboardPage.jsx
-│ │ │ ├─ CityPage.jsx
-│ │ │ └─ Countrypage.jsx
-│ │ ├─ styles\ (CSS files)
-│ │ └─ index.js (React entry)
-│ ├─ build\ (generated production build; served by backend)
-│ └─ fix-auth-placeholders*.js (helper scripts, optional/auxiliary)
-└─ (other files / temp artifacts)
-
-Notes
+========================================================================================
+                          Travelapp (Project Root Directory)                            
+========================================================================================
+ │
+ ├── 📄 README.md
+ ├── ⚙️  package.json
+ │
+ ├── 📁 [Doc/]  ---------------------------------- (Architectural Documentation)
+ │    ├── 🟢 folder-tree.svg
+ │    ├── 🟢 folder-architecture.mmd
+ │    └── 🟢 folder-architecture.dot
+ │
+ └── 📁 [Travel_App_Core/]  ---------------------- (Fullstack Application Codebase)
+      │
+      ├── 📁 [backend/]  ------------------------- (Express API & Database Logic)
+      │    ├── 🚀 server.js                       <-- Main Express App Entry Point
+      │    ├── ⚙️  package.json
+      │    ├── 🗄️  schema.sql                      <-- PostgreSQL Database Schema
+      │    ├── 🛣️  usersRouter.js                  <-- Auth & User Route Controllers
+      │    │
+      │    ├── 📁 [middleware/]
+      │    │    └── 🔒 requireUser.js             <-- JWT / Session Auth Middleware
+      │    │
+      │    ├── 📁 [db/]
+      │    │    ├── 🔌 index.js                   <-- PostgreSQL Pool Connection
+      │    │    └── 📁 [queries/]                 <-- Modular Database Access
+      │    │         ├── 📄 users.js
+      │    │         ├── 📄 sessions.js
+      │    │         ├── 📄 saved_places.js
+      │    │         ├── 📄 itineraries.js
+      │    │         ├── 📄 itinerary_items.js
+      │    │         ├── 📄 cities.js
+      │    │         ├── 📄 places.js
+      │    │         ├── 📄 routes.js
+      │    │         └── 📄 pins.js
+      │    │
+      │    └── 📁 [scripts/]                      <-- Maintenance & Seeding Utilities
+      │         ├── 🛠️  seed.js
+      │         └── 🛠️  create_user.js
+      │
+      └── 📁 [frontend/] ------------------------- (React Single Page App)
+           ├── ⚙️  package.json
+           ├── 🔐 .env                            <-- Gitignored Environment Keys
+           │
+           ├── 📁 [public/]
+           │    └── 🌐 index.html
+           │
+           ├── 📁 [src/]                          <-- React Application Source
+           │    ├── ⚛️  index.js                    <-- React Root Renderer
+           │    │
+           │    ├── 📁 [components/]              <-- Reusable UI Components
+           │    │    ├── 🧩 AuthCard.jsx
+           │    │    ├── 🧩 SaveButton.jsx
+           │    │    └── 🧩 SearchBar.jsx
+           │    │
+           │    ├── 📁 [pages/]                   <-- View & Route Screens
+           │    │    ├── 🖥️  DashboardPage.jsx
+           │    │    ├── 🖥️  CityPage.jsx
+           │    │    └── 🖥️  Countrypage.jsx
+           │    │
+           │    └── 📁 [styles/]                  <-- CSS Styling Modules
+           │
+           └── 📁 [build/]                        <-- Compiled Production Bundle 
+                                                      (Served by Express backend)
 
 backend/server.js serves frontend\build when present and provides API routes under /api.
 DB access is centralized at backend\db\index.js and implemented per-domain in db\queries*.js.
