@@ -25,32 +25,7 @@ Main features
 - Images: Unsplash image search for destination thumbnails.
 - POIs & Map styles: Geoapify (MapLibre) for POIs and style tiles.
 
-Repository / Folder architecture
---------------------------------
-Root: [C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp)
 
-![Folder tree diagram](./Doc/folder-tree.svg)
-
-
-- [Doc/](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Doc) — project documents and plans
-- [Travel_App_Core/](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core) — main app
-  - [backend/](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/backend)
-    - [.env](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/backend/.env) (env vars)
-    - [schema.sql](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/backend/schema.sql)
-    - [server.js](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/backend/server.js)
-  - [frontend/](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend)
-    - [.env](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/.env)
-    - [public/](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/public)
-    - [src/](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src)
-      - [components/](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/components)
-        - [AuthCard.jsx](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/components/AuthCard.jsx)
-        - [SaveButton.jsx](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/components/SaveButton.jsx)
-        - [Map.jsx](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/components/Map.jsx)
-      - [pages/](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/pages)
-        - [DashboardPage.jsx](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/pages/DashboardPage.jsx)
-        - [CityPage.jsx](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/pages/CityPage.jsx)
-        - [Countrypage.jsx](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/pages/Countrypage.jsx)
-        - [ProfilePage.jsx](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/pages/ProfilePage.jsx)
 
 PostgreSQL schemas (current)
 ----------------------------
@@ -66,6 +41,62 @@ Notes about schema
 Architecture diagram (logical)
 -----------------------------
 <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/7538e791-b152-49f7-abe3-c9601f1101b5" />
+Travelapp
+├─ README.md
+├─ package.json
+├─ Doc
+│ ├─ folder-tree.svg
+│ ├─ folder-architecture.mmd
+│ └─ folder-architecture.dot
+├─ Travel_App_Core
+│ ├─ backend
+│ │ ├─ server.js
+│ │ ├─ package.json
+│ │ ├─ schema.sql
+│ │ ├─ usersRouter.js
+│ │ ├─ middleware
+│ │ │ └─ requireUser.js
+│ │ ├─ db
+│ │ │ ├─ index.js
+│ │ │ └─ queries
+│ │ │ ├─ users.js
+│ │ │ ├─ sessions.js
+│ │ │ ├─ saved_places.js
+│ │ │ ├─ itineraries.js
+│ │ │ ├─ itinerary_items.js
+│ │ │ ├─ cities.js
+│ │ │ ├─ places.js
+│ │ │ ├─ routes.js
+│ │ │ └─ pins.js
+│ │ └─ scripts
+│ │ ├─ seed.js
+│ │ └─ create_user.js
+│ └─ frontend
+│ ├─ package.json
+│ ├─ .env (gitignored; contains REACT_APP_* keys)
+│ ├─ public
+│ │ └─ index.html
+│ ├─ src
+│ │ ├─ components
+│ │ │ ├─ AuthCard.jsx
+│ │ │ ├─ SaveButton.jsx
+│ │ │ └─ SearchBar.jsx (and other components)
+│ │ ├─ pages
+│ │ │ ├─ DashboardPage.jsx
+│ │ │ ├─ CityPage.jsx
+│ │ │ └─ Countrypage.jsx
+│ │ ├─ styles\ (CSS files)
+│ │ └─ index.js (React entry)
+│ ├─ build\ (generated production build; served by backend)
+│ └─ fix-auth-placeholders*.js (helper scripts, optional/auxiliary)
+└─ (other files / temp artifacts)
+
+Notes
+
+backend/server.js serves frontend\build when present and provides API routes under /api.
+DB access is centralized at backend\db\index.js and implemented per-domain in db\queries*.js.
+.env in the frontend is gitignored; REACT_APP_* values are baked into the frontend at build time.
+frontend\build is generated (npm run build) and must exist on the host for backend to serve the SPA.
 
 
 External APIs used (how they are connected)
