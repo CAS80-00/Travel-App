@@ -54,55 +54,9 @@ Root: [C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/](C:/Users/d
 
 PostgreSQL schemas (current)
 ----------------------------
-The DB schema is defined in [Travel_App_Core/backend/schema.sql](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/backend/schema.sql). Key tables:
+The DB schema is defined in [Travel_App_Core/backend/schema.sql]
 
-users
-```
-CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  first_name VARCHAR(100) NOT NULL,
-  last_name VARCHAR(100) NOT NULL,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-sessions
-```
-CREATE TABLE IF NOT EXISTS sessions (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  token VARCHAR(255) NOT NULL UNIQUE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP NOT NULL
-);
-```
-
-saved_places
-```
-CREATE TABLE IF NOT EXISTS saved_places (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  type VARCHAR(50) NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (user_id, type, name)
-);
-```
-
-itineraries
-```
-CREATE TABLE IF NOT EXISTS itineraries (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  name VARCHAR(255) NOT NULL,
-  points TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (user_id, name)
-);
-```
+<img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/85f7c53a-24e1-48fb-9647-9ddd46d20769" />
 
 Notes about schema
 - ON DELETE CASCADE is used for related tables (sessions, saved_places, itineraries) so deleting a user removes related rows.
