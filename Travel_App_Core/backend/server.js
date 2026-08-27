@@ -468,12 +468,10 @@ app.post("/api/itineraries", async (req, res) => {
   }
 
   if (!name || !points) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Itinerary name and points are required.",
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Itinerary name and points are required.",
+    });
   }
 
   try {
@@ -988,7 +986,11 @@ if (fs.existsSync(buildPath)) {
 } else {
   console.log("Frontend build not found at", buildPath);
 }
+// ** Health Check Endpoint ** //
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
 
 // ** Server Initialization ** //
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
