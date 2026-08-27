@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import "../styles/SaveButton.css";
 
-const API_BASE = "http://localhost:4000";
+const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+
+const authHeaders = () => {
+  const token = localStorage.getItem('travelAppToken');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 const SaveButton = ({ itemName = "itinerary", label = "Save", itemType = "itinerary" }) => {
   const [showGuestMessage, setShowGuestMessage] = useState(false);
@@ -18,7 +23,7 @@ const SaveButton = ({ itemName = "itinerary", label = "Save", itemType = "itiner
 
     try {
       const response = await fetch(`${API_BASE}/api/saved-places`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { ...authHeaders() },
       });
 
       const data = await response.json();
@@ -49,7 +54,7 @@ const SaveButton = ({ itemName = "itinerary", label = "Save", itemType = "itiner
         method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...authHeaders()
         },
         body: JSON.stringify({
           name: itemName,

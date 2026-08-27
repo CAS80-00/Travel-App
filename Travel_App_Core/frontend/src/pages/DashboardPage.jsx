@@ -4,7 +4,12 @@ import "../styles/ProfilePage.css";
 import "../styles/DashboardPage.css";
 import SearchBar from "../components/SearchBar";
 
-const API_BASE = "http://localhost:4000";
+const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+
+const authHeaders = () => {
+  const token = localStorage.getItem('travelAppToken');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -229,7 +234,7 @@ const DashboardPage = () => {
 
       try {
         const response = await fetch(`${API_BASE}/api/me`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { ...authHeaders() },
         });
 
         if (!response.ok) {
@@ -248,7 +253,7 @@ const DashboardPage = () => {
 
         // Fetch Saved Places
         const savedResponse = await fetch(`${API_BASE}/api/saved-places`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { ...authHeaders() },
         });
 
         const savedData = await savedResponse.json();
@@ -266,7 +271,7 @@ const DashboardPage = () => {
 
         // Fetch Itineraries
         const itineraryResponse = await fetch(`${API_BASE}/api/itineraries`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { ...authHeaders() },
         });
         const itineraryData = await itineraryResponse.json();
         if (itineraryResponse.ok && itineraryData.success) {
@@ -667,7 +672,7 @@ const DashboardPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...authHeaders()
         },
         body: JSON.stringify({
           name: targetItineraryName.trim(),
@@ -706,7 +711,7 @@ const DashboardPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...authHeaders()
         },
         body: JSON.stringify({
           name: targetItineraryName.trim(),
@@ -891,7 +896,7 @@ const DashboardPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...authHeaders()
         },
         body: JSON.stringify({
           name: name.trim(),
@@ -927,7 +932,7 @@ const DashboardPage = () => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...authHeaders()
         },
         body: JSON.stringify({ name: currentItineraryName }),
       });
@@ -981,7 +986,7 @@ const DashboardPage = () => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...authHeaders()
         },
         body: JSON.stringify({ name }),
       });
@@ -1530,7 +1535,7 @@ const DashboardPage = () => {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
+                        ...authHeaders()
                       },
                       body: JSON.stringify({ newPassword }),
                     });
@@ -1599,7 +1604,7 @@ const DashboardPage = () => {
                       method: "DELETE",
                       headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
+                        ...authHeaders()
                       },
                     });
                     const data = await resp.json();
