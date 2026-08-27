@@ -65,25 +65,8 @@ Notes about schema
 
 Architecture diagram (logical)
 -----------------------------
-Frontend (React)
-  - UI (Auth, Dashboard, City/Country pages, Map)
-  - Google Maps JS (client-side): Autocomplete, Directions, Geocoder, Map rendering
-  - Geoapify/MapLibre for POIs + tiles
-  - Unsplash for images
-      |
-      | HTTP (REST)
-      v
-Backend (Express)
-  - Routes: /api/register, /api/login, /api/logout, /api/me
-            /api/save-place, /api/saved-places
-            /api/itineraries
-            /api/wikivoyage/:city, /api/wikivoyage-country/:country
-  - Uses Cheerio to parse Wikivoyage HTML
-      |
-      | SQL
-      v
-PostgreSQL
-  - users, sessions, saved_places, itineraries
+<img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/7538e791-b152-49f7-abe3-c9601f1101b5" />
+
 
 External APIs used (how they are connected)
 -------------------------------------------
