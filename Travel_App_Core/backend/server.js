@@ -977,7 +977,7 @@ app.get("/api/wikivoyage-country/:country", async (req, res) => {
 });
 
 // ** Static Asset Serving (Frontend Build) ** //
-const buildPath = path.join(__dirname, "../frontend/build");
+const buildPath = path.join(__dirname, "../frontend/dist");
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
   app.get("*", (_req, res) => {
