@@ -8,13 +8,9 @@ dotenv.config();
 
 const { Pool } = pg;
 
-// SSL configuration enabled for Render external connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+// SSL configuration: use SSL when running in production (managed DBs like Render/Heroku)
+const useSsl = !!process.env.DATABASE_URL && process.env.NODE_ENV === 'production';
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: useSsl ? { rejectUnauthorized: false } : false });
 
 async function run() {
   try {

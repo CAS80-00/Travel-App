@@ -957,6 +957,7 @@ if (fs.existsSync(buildPath)) {
   console.log('Frontend build not found at', buildPath);
 }
 
-//**server start at port 4000 */
-app.listen(4000, () => console.log('Backend running on port 4000'));
+//**server start using environment PORT (for hosting) or 4000 locally */
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
 

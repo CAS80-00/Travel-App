@@ -4,7 +4,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const { Pool } = pg;
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// Use SSL for production-managed Postgres (Render, Heroku). In local/dev, disable SSL for convenience.
+const useSsl = !!process.env.DATABASE_URL && process.env.NODE_ENV === 'production';
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
+});
 
 export default pool;
 

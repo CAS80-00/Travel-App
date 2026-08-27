@@ -6,7 +6,8 @@ import jwt from 'jsonwebtoken';
 // Loads .env in backend folder if present
 dotenv.config();
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const useSsl = !!process.env.DATABASE_URL && process.env.NODE_ENV === 'production';
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: useSsl ? { rejectUnauthorized: false } : false });
 
 async function run() {
   const email = process.env.USER_EMAIL;
