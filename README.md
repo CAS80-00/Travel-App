@@ -149,6 +149,5 @@ Notes and recommendations
   ALTER TABLE itineraries ALTER COLUMN points TYPE JSONB USING points::jsonb;
 - If you want pins persisted, add a pins table (user_id, lat, lng, name, metadata JSONB) and endpoints GET/POST/DELETE /api/pins.
 - For production, serve the frontend build from a static server (or host on CDN) and run backend behind a reverse proxy. Use environment variables and a secure JWT secret.
-  <img width="1408" height="768" alt="watermarked_img_11751875187611396007" src="https://github.com/user-attachments/assets/eb4bc4f8-5511-409a-8c8e-d1983da6bba9" />
-
+ 
 
