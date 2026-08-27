@@ -212,21 +212,6 @@ Notes and recommendations
   ALTER TABLE itineraries ALTER COLUMN points TYPE JSONB USING points::jsonb;
 - If you want pins persisted, add a pins table (user_id, lat, lng, name, metadata JSONB) and endpoints GET/POST/DELETE /api/pins.
 - For production, serve the frontend build from a static server (or host on CDN) and run backend behind a reverse proxy. Use environment variables and a secure JWT secret.
+  <img width="1408" height="768" alt="watermarked_img_11751875187611396007" src="https://github.com/user-attachments/assets/eb4bc4f8-5511-409a-8c8e-d1983da6bba9" />
 
-Where to look for important code
---------------------------------
-- Backend server: [C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/backend/server.js](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/backend/server.js)
-- DB schema: [C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/backend/schema.sql](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/backend/schema.sql)
-- Frontend Dashboard (Google Maps): [C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/pages/DashboardPage.jsx](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/pages/DashboardPage.jsx)
-- Frontend Map/POIs: [C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/components/Map.jsx](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/components/Map.jsx)
-- Unsplash helper: [C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/api/unsplash.js](C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp/Travel_App_Core/frontend/src/api/unsplash.js)
 
-Contact / next steps
---------------------
-If you want this README committed to Git with an appropriate commit message, tell me and I will commit the new file. I can also:
-- Add a migration that converts itineraries.points to JSONB,
-- Add DB functions to centralize deletions/audit,
-- Persist pins in the DB and wire frontend endpoints,
-- Produce a visual ER diagram and add it to /Doc.
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
