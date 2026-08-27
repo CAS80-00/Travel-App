@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AuthCard.css";
 
-const API_BASE = "http://localhost:4000";
+const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 const TWENTY_EIGHT_MINUTES = 28 * 60 * 1000;
 const TWO_MINUTES = 2 * 60 * 1000;
 

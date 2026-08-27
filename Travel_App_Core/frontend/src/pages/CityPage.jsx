@@ -31,8 +31,10 @@ const CityPage = () => {
   };
 
   // ⭐ Fetch Wikivoyage content
+  const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+
   useEffect(() => {
-    fetch(`http://localhost:4000/api/wikivoyage/${city}`)
+    fetch(`${API_BASE}/api/wikivoyage/${city}`)
       .then((res) => res.json())
       .then((data) => setWiki(data))
       .catch((err) => console.error("Fetch error:", err));

@@ -1,0 +1,5 @@
+Change backend default port to 10000
+
+- Use PORT env or default to 10000 instead of 4000
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

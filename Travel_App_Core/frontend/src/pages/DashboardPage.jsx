@@ -4,10 +4,11 @@ import "../styles/ProfilePage.css";
 import "../styles/DashboardPage.css";
 import SearchBar from "../components/SearchBar";
 
-const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
+const response = await fetch(`${API_BASE_URL}/api/travel-data`);
 
 const authHeaders = () => {
-  const token = localStorage.getItem('travelAppToken');
+  const token = localStorage.getItem("travelAppToken");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
@@ -72,7 +73,10 @@ const DashboardPage = () => {
   const directionsRendererRef = useRef(null);
 
   const userProfile = {
-    firstName: user?.firstName || localStorage.getItem("travelAppUserName") || "Traveler",
+    firstName:
+      user?.firstName ||
+      localStorage.getItem("travelAppUserName") ||
+      "Traveler",
     lastName: user?.lastName || "User",
     email: user?.email || "your.email@example.com",
     savedCities: ["Search for a new city", ...savedPlaces.city],
@@ -130,35 +134,40 @@ const DashboardPage = () => {
   const TWENTY_EIGHT_MINUTES = 28 * 60 * 1000;
   const TWO_MINUTES = 2 * 60 * 1000;
 
-  const handleLogout = useCallback(async (skipConfirm = false) => {
-    if (!skipConfirm) {
-      const shouldLogout = window.confirm("Are you sure you want to log out?");
-      if (!shouldLogout) return;
-    }
-
-    const token = localStorage.getItem("travelAppToken");
-
-    if (token) {
-      try {
-        await fetch(`${API_BASE}/api/logout`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
-      } catch (error) {
-        console.error("Logout request failed:", error);
+  const handleLogout = useCallback(
+    async (skipConfirm = false) => {
+      if (!skipConfirm) {
+        const shouldLogout = window.confirm(
+          "Are you sure you want to log out?",
+        );
+        if (!shouldLogout) return;
       }
-    }
 
-    localStorage.removeItem("travelAppLoggedIn");
-    localStorage.removeItem("travelAppToken");
-    localStorage.removeItem("travelAppUser");
+      const token = localStorage.getItem("travelAppToken");
 
-    setIsLoggedIn(false);
-    setUser(null);
-    setShowInactivityPrompt(false);
-    navigate("/");
-  }, [navigate]);
+      if (token) {
+        try {
+          await fetch(`${API_BASE}/api/logout`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          });
+        } catch (error) {
+          console.error("Logout request failed:", error);
+        }
+      }
+
+      localStorage.removeItem("travelAppLoggedIn");
+      localStorage.removeItem("travelAppToken");
+      localStorage.removeItem("travelAppUser");
+
+      setIsLoggedIn(false);
+      setUser(null);
+      setShowInactivityPrompt(false);
+      navigate("/");
+    },
+    [navigate],
+  );
 
   const clearInactivityTimers = useCallback(() => {
     if (inactivityTimerRef.current) {
@@ -183,17 +192,20 @@ const DashboardPage = () => {
     }, TWENTY_EIGHT_MINUTES);
   }, [clearInactivityTimers, handleLogout, isLoggedIn]);
 
-  const handleInactivityChoice = useCallback((keepLoggedIn) => {
-    clearInactivityTimers();
+  const handleInactivityChoice = useCallback(
+    (keepLoggedIn) => {
+      clearInactivityTimers();
 
-    if (keepLoggedIn) {
-      setShowInactivityPrompt(false);
-      startInactivityTimer();
-      return;
-    }
+      if (keepLoggedIn) {
+        setShowInactivityPrompt(false);
+        startInactivityTimer();
+        return;
+      }
 
-    handleLogout(true);
-  }, [clearInactivityTimers, handleLogout, startInactivityTimer]);
+      handleLogout(true);
+    },
+    [clearInactivityTimers, handleLogout, startInactivityTimer],
+  );
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -214,16 +226,24 @@ const DashboardPage = () => {
     events.forEach((eventName) => window.addEventListener(eventName, reset));
 
     return () => {
-      events.forEach((eventName) => window.removeEventListener(eventName, reset));
+      events.forEach((eventName) =>
+        window.removeEventListener(eventName, reset),
+      );
       clearInactivityTimers();
     };
-  }, [clearInactivityTimers, isLoggedIn, startInactivityTimer, showInactivityPrompt]);
+  }, [
+    clearInactivityTimers,
+    isLoggedIn,
+    startInactivityTimer,
+    showInactivityPrompt,
+  ]);
 
   // 2. Validate Session and Fetch Data from Backend
   useEffect(() => {
     const validateSession = async () => {
       const token = localStorage.getItem("travelAppToken");
-      const loggedIn = localStorage.getItem("travelAppLoggedIn") === "true" && Boolean(token);
+      const loggedIn =
+        localStorage.getItem("travelAppLoggedIn") === "true" && Boolean(token);
 
       if (!loggedIn) {
         setIsLoggedIn(false);
@@ -277,7 +297,6 @@ const DashboardPage = () => {
         if (itineraryResponse.ok && itineraryData.success) {
           setItineraries(itineraryData.itineraries);
         }
-
       } catch (error) {
         console.error("Dashboard validation error:", error);
         setIsLoggedIn(false);
@@ -292,7 +311,7 @@ const DashboardPage = () => {
     if (!mapLoaded || !isLoggedIn || !mapContainerRef.current) return;
     if (mapRef.current) return; // Prevent double initialization
 
-    let center = { lat: 40.7128, lng: -74.0060 }; // Default center: NYC
+    let center = { lat: 40.7128, lng: -74.006 }; // Default center: NYC
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -306,7 +325,7 @@ const DashboardPage = () => {
             mapRef.current.setCenter(userPos);
           }
         },
-        (error) => console.log("Geolocation error:", error)
+        (error) => console.log("Geolocation error:", error),
       );
     }
 
@@ -342,9 +361,12 @@ const DashboardPage = () => {
     if (!mapLoaded || !isLoggedIn || !window.google) return;
 
     if (fromInputRef.current && !fromAutocompleteRef.current) {
-      fromAutocompleteRef.current = new window.google.maps.places.Autocomplete(fromInputRef.current, {
-        fields: ["geometry", "name", "formatted_address"],
-      });
+      fromAutocompleteRef.current = new window.google.maps.places.Autocomplete(
+        fromInputRef.current,
+        {
+          fields: ["geometry", "name", "formatted_address"],
+        },
+      );
 
       fromAutocompleteRef.current.addListener("place_changed", () => {
         const place = fromAutocompleteRef.current.getPlace();
@@ -363,9 +385,12 @@ const DashboardPage = () => {
     }
 
     if (toInputRef.current && !toAutocompleteRef.current) {
-      toAutocompleteRef.current = new window.google.maps.places.Autocomplete(toInputRef.current, {
-        fields: ["geometry", "name", "formatted_address"],
-      });
+      toAutocompleteRef.current = new window.google.maps.places.Autocomplete(
+        toInputRef.current,
+        {
+          fields: ["geometry", "name", "formatted_address"],
+        },
+      );
 
       toAutocompleteRef.current.addListener("place_changed", () => {
         const place = toAutocompleteRef.current.getPlace();
@@ -384,7 +409,6 @@ const DashboardPage = () => {
     }
   }, [mapLoaded, isLoggedIn]);
 
-
   // 3c. Fetch Wikivoyage Travel Guide for Destination
   useEffect(() => {
     if (!toLocation) {
@@ -396,14 +420,18 @@ const DashboardPage = () => {
       setLoadingWiki(true);
       setWikiData(null);
       try {
-        const cityName = toLocation.name.split(',')[0].trim();
-        let response = await fetch(`${API_BASE}/api/wikivoyage/${encodeURIComponent(cityName)}`);
+        const cityName = toLocation.name.split(",")[0].trim();
+        let response = await fetch(
+          `${API_BASE}/api/wikivoyage/${encodeURIComponent(cityName)}`,
+        );
         let data = await response.json();
 
         if (response.ok && data.sections && data.sections.length > 0) {
           setWikiData(data);
         } else {
-          response = await fetch(`${API_BASE}/api/wikivoyage-country/${encodeURIComponent(cityName)}`);
+          response = await fetch(
+            `${API_BASE}/api/wikivoyage-country/${encodeURIComponent(cityName)}`,
+          );
           data = await response.json();
           if (response.ok && data.sections && data.sections.length > 0) {
             setWikiData(data);
@@ -450,7 +478,9 @@ const DashboardPage = () => {
         setSelectedPin(pin);
 
         setTimeout(() => {
-          const dirBtn = document.getElementById(`infowindow-directions-${index}`);
+          const dirBtn = document.getElementById(
+            `infowindow-directions-${index}`,
+          );
           const rmBtn = document.getElementById(`infowindow-remove-${index}`);
 
           if (dirBtn) {
@@ -490,7 +520,11 @@ const DashboardPage = () => {
 
   const addPinToList = (newPin) => {
     setActivePins((prev) => {
-      const exists = prev.some((pin) => Math.abs(pin.lat - newPin.lat) < 0.0001 && Math.abs(pin.lng - newPin.lng) < 0.0001);
+      const exists = prev.some(
+        (pin) =>
+          Math.abs(pin.lat - newPin.lat) < 0.0001 &&
+          Math.abs(pin.lng - newPin.lng) < 0.0001,
+      );
       if (exists) return prev;
       return [...prev, newPin];
     });
@@ -532,8 +566,10 @@ const DashboardPage = () => {
           }
         },
         (error) => {
-          alert("Error detecting location. Please allow browser location access.");
-        }
+          alert(
+            "Error detecting location. Please allow browser location access.",
+          );
+        },
       );
     } else {
       alert("Geolocation is not supported by your browser.");
@@ -556,8 +592,10 @@ const DashboardPage = () => {
             calculateRoute(userPos, destinationPin);
           },
           () => {
-            alert("Please allow location access to calculate directions from your current location.");
-          }
+            alert(
+              "Please allow location access to calculate directions from your current location.",
+            );
+          },
         );
       } else {
         alert("Geolocation is not supported by your browser.");
@@ -583,7 +621,7 @@ const DashboardPage = () => {
         } else {
           alert(`Directions request failed: ${status}`);
         }
-      }
+      },
     );
   };
 
@@ -634,9 +672,11 @@ const DashboardPage = () => {
         if (status === "OK" && directionsRendererRef.current) {
           directionsRendererRef.current.setDirections(result);
         } else {
-          alert(`Multi-point routing failed: ${status}. Transit mode may not support multiple waypoints. Try Driving or Walking.`);
+          alert(
+            `Multi-point routing failed: ${status}. Transit mode may not support multiple waypoints. Try Driving or Walking.`,
+          );
         }
-      }
+      },
     );
   };
 
@@ -652,16 +692,25 @@ const DashboardPage = () => {
     }
 
     const token = localStorage.getItem("travelAppToken");
-    const existing = itineraries.find((it) => it.name.toLowerCase() === targetItineraryName.trim().toLowerCase());
+    const existing = itineraries.find(
+      (it) =>
+        it.name.toLowerCase() === targetItineraryName.trim().toLowerCase(),
+    );
     let updatedPoints = [];
 
     if (existing) {
       updatedPoints = JSON.parse(existing.points);
     }
 
-    const pinExists = updatedPoints.some((p) => Math.abs(p.lat - pin.lat) < 0.0001 && Math.abs(p.lng - pin.lng) < 0.0001);
+    const pinExists = updatedPoints.some(
+      (p) =>
+        Math.abs(p.lat - pin.lat) < 0.0001 &&
+        Math.abs(p.lng - pin.lng) < 0.0001,
+    );
     if (pinExists) {
-      alert(`"${pin.name}" is already saved in itinerary "${targetItineraryName.trim()}"!`);
+      alert(
+        `"${pin.name}" is already saved in itinerary "${targetItineraryName.trim()}"!`,
+      );
       return;
     }
 
@@ -672,7 +721,7 @@ const DashboardPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...authHeaders()
+          ...authHeaders(),
         },
         body: JSON.stringify({
           name: targetItineraryName.trim(),
@@ -683,7 +732,9 @@ const DashboardPage = () => {
       const data = await response.json();
       if (response.ok && data.success) {
         setItineraries(data.itineraries);
-        alert(`Successfully saved "${pin.name}" to itinerary "${targetItineraryName.trim()}"!`);
+        alert(
+          `Successfully saved "${pin.name}" to itinerary "${targetItineraryName.trim()}"!`,
+        );
       } else {
         alert(data.message || "Failed to save itinerary.");
       }
@@ -711,7 +762,7 @@ const DashboardPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...authHeaders()
+          ...authHeaders(),
         },
         body: JSON.stringify({
           name: targetItineraryName.trim(),
@@ -722,7 +773,9 @@ const DashboardPage = () => {
       const data = await response.json();
       if (response.ok && data.success) {
         setItineraries(data.itineraries);
-        alert(`Successfully saved itinerary "${targetItineraryName.trim()}" with ${activePins.length} locations!`);
+        alert(
+          `Successfully saved itinerary "${targetItineraryName.trim()}" with ${activePins.length} locations!`,
+        );
       } else {
         alert(data.message || "Failed to save itinerary.");
       }
@@ -736,7 +789,7 @@ const DashboardPage = () => {
   const handleSelectItinerary = (itinerary) => {
     try {
       const data = JSON.parse(itinerary.points);
-      
+
       if (data && data.from && data.to) {
         setFromLocation(data.from);
         setToLocation(data.to);
@@ -751,8 +804,10 @@ const DashboardPage = () => {
         // Auto-calculate the route on selection
         setTimeout(() => {
           if (mapRef.current && directionsRendererRef.current) {
-            const directionsService = new window.google.maps.DirectionsService();
-            const mode = window.google.maps.TravelMode[data.travelMode || "DRIVING"];
+            const directionsService =
+              new window.google.maps.DirectionsService();
+            const mode =
+              window.google.maps.TravelMode[data.travelMode || "DRIVING"];
 
             const panel = document.getElementById("directions-panel");
             if (panel) {
@@ -776,7 +831,7 @@ const DashboardPage = () => {
                 if (status === "OK") {
                   directionsRendererRef.current.setDirections(result);
                 }
-              }
+              },
             );
           }
         }, 300);
@@ -791,7 +846,8 @@ const DashboardPage = () => {
           setCurrentItineraryName(itinerary.name);
 
           if (fromInputRef.current) fromInputRef.current.value = points[0].name;
-          if (toInputRef.current) toInputRef.current.value = points[points.length - 1].name;
+          if (toInputRef.current)
+            toInputRef.current.value = points[points.length - 1].name;
         }
       }
     } catch (e) {
@@ -817,13 +873,18 @@ const DashboardPage = () => {
 
     // Google Maps transit mode does NOT support intermediate waypoints/stops.
     // If Transit is selected, we filter out waypoints to avoid INVALID_REQUEST.
-    const waypoints = travelMode === "TRANSIT" ? [] : activePins.map((pin) => ({
-      location: { lat: pin.lat, lng: pin.lng },
-      stopover: true,
-    }));
+    const waypoints =
+      travelMode === "TRANSIT"
+        ? []
+        : activePins.map((pin) => ({
+            location: { lat: pin.lat, lng: pin.lng },
+            stopover: true,
+          }));
 
     if (travelMode === "TRANSIT" && activePins.length > 0) {
-      alert("Note: Google Maps does not support intermediate custom stops (waypoints) for Public Transportation. We are calculating a direct route between your starting point and destination instead.");
+      alert(
+        "Note: Google Maps does not support intermediate custom stops (waypoints) for Public Transportation. We are calculating a direct route between your starting point and destination instead.",
+      );
     }
 
     directionsService.route(
@@ -841,15 +902,21 @@ const DashboardPage = () => {
         } else {
           if (travelMode === "TRANSIT") {
             if (status === "ZERO_RESULTS") {
-              alert("No public transit route was found between these locations (e.g. they are across different countries or no transit data exists). Try Driving or Walking!");
+              alert(
+                "No public transit route was found between these locations (e.g. they are across different countries or no transit data exists). Try Driving or Walking!",
+              );
             } else {
-              alert(`Could not calculate public transit route: ${status}. Try Driving or Walking!`);
+              alert(
+                `Could not calculate public transit route: ${status}. Try Driving or Walking!`,
+              );
             }
           } else {
-            alert(`Could not calculate route: ${status}. Try Driving or Walking.`);
+            alert(
+              `Could not calculate route: ${status}. Try Driving or Walking.`,
+            );
           }
         }
-      }
+      },
     );
   };
 
@@ -878,17 +945,17 @@ const DashboardPage = () => {
       return;
     }
 
-    const defaultName = `${fromLocation.name.split(',')[0]} to ${toLocation.name.split(',')[0]}`;
+    const defaultName = `${fromLocation.name.split(",")[0]} to ${toLocation.name.split(",")[0]}`;
     const name = window.prompt("Enter a name for this itinerary:", defaultName);
     if (!name || !name.trim()) return;
 
     const token = localStorage.getItem("travelAppToken");
-    
+
     const itineraryData = {
       from: fromLocation,
       to: toLocation,
       travelMode: travelMode,
-      activePins: activePins
+      activePins: activePins,
     };
 
     try {
@@ -896,11 +963,11 @@ const DashboardPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...authHeaders()
+          ...authHeaders(),
         },
         body: JSON.stringify({
           name: name.trim(),
-          points: JSON.stringify(itineraryData)
+          points: JSON.stringify(itineraryData),
         }),
       });
 
@@ -921,8 +988,10 @@ const DashboardPage = () => {
 
   const handleDeleteCurrentItinerary = async () => {
     if (!currentItineraryName) return;
-    
-    const confirmDelete = window.confirm(`Are you sure you want to delete the itinerary "${currentItineraryName}"?`);
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the itinerary "${currentItineraryName}"?`,
+    );
     if (!confirmDelete) return;
 
     const token = localStorage.getItem("travelAppToken");
@@ -932,7 +1001,7 @@ const DashboardPage = () => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          ...authHeaders()
+          ...authHeaders(),
         },
         body: JSON.stringify({ name: currentItineraryName }),
       });
@@ -954,12 +1023,15 @@ const DashboardPage = () => {
 
   const checkIsCurrentItinerarySaved = () => {
     if (!fromLocation || !toLocation) return;
-    const match = itineraries.find(it => {
+    const match = itineraries.find((it) => {
       try {
         const data = JSON.parse(it.points);
-        return data.from && data.to &&
+        return (
+          data.from &&
+          data.to &&
           Math.abs(data.from.lat - fromLocation.lat) < 0.0001 &&
-          Math.abs(data.to.lat - toLocation.lat) < 0.0001;
+          Math.abs(data.to.lat - toLocation.lat) < 0.0001
+        );
       } catch (e) {
         return false;
       }
@@ -976,7 +1048,9 @@ const DashboardPage = () => {
 
   // 9. Delete Saved Itinerary
   const handleDeleteItinerary = async (name) => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete the itinerary "${name}"?`);
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the itinerary "${name}"?`,
+    );
     if (!confirmDelete) return;
 
     const token = localStorage.getItem("travelAppToken");
@@ -986,7 +1060,7 @@ const DashboardPage = () => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          ...authHeaders()
+          ...authHeaders(),
         },
         body: JSON.stringify({ name }),
       });
@@ -1034,9 +1108,29 @@ const DashboardPage = () => {
         </div>
 
         <div className="header-user-container">
-          <div style={{ background: "rgba(255, 255, 255, 0.9)", border: "1px solid rgba(148, 163, 184, 0.2)", borderRadius: "12px", padding: "10px 16px", display: "flex", alignItems: "center", gap: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-            <span style={{ fontSize: "0.95rem", color: "#1e293b", fontFamily: "inherit" }}>
-              Welcome, <strong style={{ color: "#2563eb" }}>{userProfile.firstName}</strong>
+          <div
+            style={{
+              background: "rgba(255, 255, 255, 0.9)",
+              border: "1px solid rgba(148, 163, 184, 0.2)",
+              borderRadius: "12px",
+              padding: "10px 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "0.95rem",
+                color: "#1e293b",
+                fontFamily: "inherit",
+              }}
+            >
+              Welcome,{" "}
+              <strong style={{ color: "#2563eb" }}>
+                {userProfile.firstName}
+              </strong>
             </span>
             <button
               type="button"
@@ -1049,7 +1143,7 @@ const DashboardPage = () => {
                 padding: "8px 14px",
                 fontSize: "0.85rem",
                 fontWeight: "bold",
-                cursor: "pointer"
+                cursor: "pointer",
               }}
             >
               Log Out
@@ -1061,17 +1155,32 @@ const DashboardPage = () => {
       <main className="profile-content">
         <aside className="profile-sidebar">
           {/* 1. Get Directions Card */}
-          <div className="search-placeholder-box" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div
+            className="search-placeholder-box"
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          >
             <label className="search-placeholder-label">Get Directions</label>
-            
+
             {/* From Input */}
             <div style={{ display: "flex", gap: "8px" }}>
               <input
                 ref={fromInputRef}
                 type="text"
-                placeholder={mapLoaded ? "From (Manual or click GPS 📍)" : "Loading Google Maps..."}
+                placeholder={
+                  mapLoaded
+                    ? "From (Manual or click GPS 📍)"
+                    : "Loading Google Maps..."
+                }
                 disabled={!mapLoaded}
-                style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #cbd5e1", boxSizing: "border-box", minWidth: 0, fontSize: "0.95rem" }}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #cbd5e1",
+                  boxSizing: "border-box",
+                  minWidth: 0,
+                  fontSize: "0.95rem",
+                }}
               />
               <button
                 type="button"
@@ -1087,7 +1196,7 @@ const DashboardPage = () => {
                   fontSize: "1.1rem",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center"
+                  justifyContent: "center",
                 }}
                 title="Capture Actual Location"
               >
@@ -1099,9 +1208,20 @@ const DashboardPage = () => {
             <input
               ref={toInputRef}
               type="text"
-              placeholder={mapLoaded ? "To (Manual destination address)" : "Loading Google Maps..."}
+              placeholder={
+                mapLoaded
+                  ? "To (Manual destination address)"
+                  : "Loading Google Maps..."
+              }
               disabled={!mapLoaded}
-              style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #cbd5e1", boxSizing: "border-box", fontSize: "0.95rem" }}
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                boxSizing: "border-box",
+                fontSize: "0.95rem",
+              }}
             />
 
             {/* Buttons Side-By-Side: Travel Mode Dropdown & Create Route Button */}
@@ -1120,7 +1240,7 @@ const DashboardPage = () => {
                     fontWeight: "bold",
                     fontSize: "0.88rem",
                     color: "#1e293b",
-                    boxSizing: "border-box"
+                    boxSizing: "border-box",
                   }}
                 >
                   <option value="DRIVING">🚗 Driving</option>
@@ -1141,7 +1261,7 @@ const DashboardPage = () => {
                   padding: "12px",
                   fontWeight: "bold",
                   cursor: "pointer",
-                  fontSize: "0.88rem"
+                  fontSize: "0.88rem",
                 }}
               >
                 Create Route
@@ -1168,7 +1288,15 @@ const DashboardPage = () => {
 
           {/* 3. Turn-by-Turn Text Directions Panel */}
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <span style={{ fontSize: "0.8rem", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.08em", color: "#475569" }}>
+            <span
+              style={{
+                fontSize: "0.8rem",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "#475569",
+              }}
+            >
               Route Directions
             </span>
             <div
@@ -1182,39 +1310,81 @@ const DashboardPage = () => {
                 overflowY: "auto",
                 boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)",
                 fontSize: "0.9rem",
-                color: "#1e293b"
+                color: "#1e293b",
               }}
             />
           </div>
 
           {/* 3b. Wikivoyage Destination Travel Guide */}
           {toLocation && !isSavedCurrentItinerary && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <span style={{ fontSize: "0.8rem", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.08em", color: "#475569" }}>
-                Travel Guide: {toLocation.name.split(',')[0]}
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+            >
+              <span
+                style={{
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  color: "#475569",
+                }}
+              >
+                Travel Guide: {toLocation.name.split(",")[0]}
               </span>
-              <div style={{
-                background: "white",
-                padding: "16px",
-                borderRadius: "16px",
-                border: "1px solid rgba(148, 163, 184, 0.25)",
-                maxHeight: "260px",
-                overflowY: "auto",
-                boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)",
-                fontSize: "0.9rem",
-                color: "#1e293b"
-              }}>
-                {loadingWiki && <p style={{ color: "#64748b", margin: 0 }}>Loading Wikivoyage travel guide...</p>}
-                {!loadingWiki && !wikiData && <p style={{ color: "#64748b", margin: 0, fontStyle: "italic" }}>No travel guide found for this destination on Wikivoyage.</p>}
+              <div
+                style={{
+                  background: "white",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  border: "1px solid rgba(148, 163, 184, 0.25)",
+                  maxHeight: "260px",
+                  overflowY: "auto",
+                  boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)",
+                  fontSize: "0.9rem",
+                  color: "#1e293b",
+                }}
+              >
+                {loadingWiki && (
+                  <p style={{ color: "#64748b", margin: 0 }}>
+                    Loading Wikivoyage travel guide...
+                  </p>
+                )}
+                {!loadingWiki && !wikiData && (
+                  <p
+                    style={{ color: "#64748b", margin: 0, fontStyle: "italic" }}
+                  >
+                    No travel guide found for this destination on Wikivoyage.
+                  </p>
+                )}
                 {wikiData && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    <h4 style={{ margin: "0 0 4px 0", color: "#2563eb" }}>{wikiData.title}</h4>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                    }}
+                  >
+                    <h4 style={{ margin: "0 0 4px 0", color: "#2563eb" }}>
+                      {wikiData.title}
+                    </h4>
                     {wikiData.sections.map((sec, i) => (
-                      <div key={i} style={{ borderTop: i > 0 ? "1px solid #f1f5f9" : "none", paddingTop: i > 0 ? "10px" : "0" }}>
-                        <h5 style={{ margin: "0 0 6px 0", color: "#0f172a" }}>{sec.title}</h5>
+                      <div
+                        key={i}
+                        style={{
+                          borderTop: i > 0 ? "1px solid #f1f5f9" : "none",
+                          paddingTop: i > 0 ? "10px" : "0",
+                        }}
+                      >
+                        <h5 style={{ margin: "0 0 6px 0", color: "#0f172a" }}>
+                          {sec.title}
+                        </h5>
                         <div
                           dangerouslySetInnerHTML={{ __html: sec.content }}
-                          style={{ fontSize: "0.85rem", lineHeight: "1.4", color: "#475569" }}
+                          style={{
+                            fontSize: "0.85rem",
+                            lineHeight: "1.4",
+                            color: "#475569",
+                          }}
                         />
                       </div>
                     ))}
@@ -1225,7 +1395,14 @@ const DashboardPage = () => {
           )}
 
           {/* 4. Action Buttons Container (Save Itinerary / Delete Itinerary & Clear Map) */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "4px" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              marginTop: "4px",
+            }}
+          >
             {isSavedCurrentItinerary ? (
               <button
                 type="button"
@@ -1239,7 +1416,7 @@ const DashboardPage = () => {
                   padding: "12px",
                   fontWeight: "bold",
                   cursor: "pointer",
-                  fontSize: "0.95rem"
+                  fontSize: "0.95rem",
                 }}
               >
                 Delete Itinerary
@@ -1251,14 +1428,17 @@ const DashboardPage = () => {
                 disabled={!fromLocation || !toLocation}
                 style={{
                   width: "100%",
-                  background: (fromLocation && toLocation) ? "linear-gradient(135deg, #3b82f6, #2563eb)" : "#cbd5e1",
+                  background:
+                    fromLocation && toLocation
+                      ? "linear-gradient(135deg, #3b82f6, #2563eb)"
+                      : "#cbd5e1",
                   color: "white",
                   border: "none",
                   borderRadius: "10px",
                   padding: "12px",
                   fontWeight: "bold",
-                  cursor: (fromLocation && toLocation) ? "pointer" : "default",
-                  fontSize: "0.95rem"
+                  cursor: fromLocation && toLocation ? "pointer" : "default",
+                  fontSize: "0.95rem",
                 }}
               >
                 Save Itinerary
@@ -1277,7 +1457,7 @@ const DashboardPage = () => {
                 padding: "12px",
                 fontWeight: "bold",
                 cursor: "pointer",
-                fontSize: "0.95rem"
+                fontSize: "0.95rem",
               }}
             >
               Clear Map & Directions
@@ -1302,33 +1482,96 @@ const DashboardPage = () => {
                 <div className="profile-field" style={{ position: "relative" }}>
                   <label>Name</label>
                   <div style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "1.1rem", color: "#64748b" }}>🔒</span>
-                    <input type="text" value={userProfile.firstName} readOnly style={{ paddingLeft: "36px" }} />
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        fontSize: "1.1rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      🔒
+                    </span>
+                    <input
+                      type="text"
+                      value={userProfile.firstName}
+                      readOnly
+                      style={{ paddingLeft: "36px" }}
+                    />
                   </div>
                 </div>
 
                 <div className="profile-field" style={{ position: "relative" }}>
                   <label>Last Name</label>
                   <div style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "1.1rem", color: "#64748b" }}>🔒</span>
-                    <input type="text" value={userProfile.lastName} readOnly style={{ paddingLeft: "36px" }} />
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        fontSize: "1.1rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      🔒
+                    </span>
+                    <input
+                      type="text"
+                      value={userProfile.lastName}
+                      readOnly
+                      style={{ paddingLeft: "36px" }}
+                    />
                   </div>
                 </div>
 
                 <div className="profile-field" style={{ position: "relative" }}>
                   <label>Email</label>
                   <div style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "1.1rem", color: "#64748b" }}>🔒</span>
-                    <input type="text" value={formatMaskedEmail(userProfile.email)} readOnly style={{ paddingLeft: "36px" }} />
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        fontSize: "1.1rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      🔒
+                    </span>
+                    <input
+                      type="text"
+                      value={formatMaskedEmail(userProfile.email)}
+                      readOnly
+                      style={{ paddingLeft: "36px" }}
+                    />
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div
+                  style={{ display: "flex", gap: "8px", alignItems: "center" }}
+                >
                   <button
                     type="button"
                     className="password-button"
-                    onClick={() => { setPasswordError(''); setNewPassword(''); setConfirmPassword(''); setShowChangePasswordModal(true); }}
-                    style={{ padding: '8px 12px', borderRadius: '8px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '700' }}
+                    onClick={() => {
+                      setPasswordError("");
+                      setNewPassword("");
+                      setConfirmPassword("");
+                      setShowChangePasswordModal(true);
+                    }}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                      color: "white",
+                      border: "none",
+                      cursor: "pointer",
+                      fontWeight: "700",
+                    }}
                   >
                     Change Password
                   </button>
@@ -1336,7 +1579,15 @@ const DashboardPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    style={{ padding: '8px 12px', borderRadius: '8px', background: '#fee2e2', color: '#b91c1c', border: '1px solid #fecaca', cursor: 'pointer', fontWeight: '700' }}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      background: "#fee2e2",
+                      color: "#b91c1c",
+                      border: "1px solid #fecaca",
+                      cursor: "pointer",
+                      fontWeight: "700",
+                    }}
                     title="Delete profile"
                   >
                     Delete Profile
@@ -1358,10 +1609,20 @@ const DashboardPage = () => {
             </button>
 
             {openSections.cities && (
-              <div className="accordion-content list-content" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div
+                className="accordion-content list-content"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
                 {/* Embedded City Autocomplete Search Bar */}
-                <SearchBar type="city" placeholder="Search and navigate to a new city..." />
-                
+                <SearchBar
+                  type="city"
+                  placeholder="Search and navigate to a new city..."
+                />
+
                 {userProfile.savedCities
                   .filter((city) => city !== "Search for a new city")
                   .map((city) => (
@@ -1390,9 +1651,19 @@ const DashboardPage = () => {
             </button>
 
             {openSections.countries && (
-              <div className="accordion-content list-content" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div
+                className="accordion-content list-content"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
                 {/* Embedded Country Autocomplete Search Bar */}
-                <SearchBar type="country" placeholder="Search and navigate to a new country..." />
+                <SearchBar
+                  type="country"
+                  placeholder="Search and navigate to a new country..."
+                />
 
                 {userProfile.savedCountries
                   .filter((country) => country !== "Search for a new country")
@@ -1410,7 +1681,6 @@ const DashboardPage = () => {
             )}
           </div>
 
-
           {/* Saved Itineraries Section */}
           <div className="accordion-item">
             <button
@@ -1425,8 +1695,16 @@ const DashboardPage = () => {
             {openSections.itineraries && (
               <div className="accordion-content list-content">
                 {itineraries.length === 0 ? (
-                  <p style={{ padding: "8px 4px", color: "#64748b", margin: 0, fontSize: "0.95rem" }}>
-                    No saved itineraries yet. Search and ping places to save your first itinerary!
+                  <p
+                    style={{
+                      padding: "8px 4px",
+                      color: "#64748b",
+                      margin: 0,
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    No saved itineraries yet. Search and ping places to save
+                    your first itinerary!
                   </p>
                 ) : (
                   itineraries.map((itinerary) => (
@@ -1448,8 +1726,16 @@ const DashboardPage = () => {
                         }}
                         onClick={() => handleSelectItinerary(itinerary)}
                       >
-                        <span style={{ fontWeight: "700" }}>{itinerary.name}</span>
-                        <span style={{ float: "right", color: "#64748b", fontSize: "0.85rem" }}>
+                        <span style={{ fontWeight: "700" }}>
+                          {itinerary.name}
+                        </span>
+                        <span
+                          style={{
+                            float: "right",
+                            color: "#64748b",
+                            fontSize: "0.85rem",
+                          }}
+                        >
                           {JSON.parse(itinerary.points).length} locations
                         </span>
                       </button>
@@ -1488,27 +1774,71 @@ const DashboardPage = () => {
 
       {/* Change Password Modal */}
       {showChangePasswordModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10000 }}>
-          <div style={{ background: "white", padding: "20px", borderRadius: "12px", width: "92%", maxWidth: "420px", boxSizing: "border-box", boxShadow: "0 10px 30px rgba(2,6,23,0.2)" }}>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(15,23,42,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "12px",
+              width: "92%",
+              maxWidth: "420px",
+              boxSizing: "border-box",
+              boxShadow: "0 10px 30px rgba(2,6,23,0.2)",
+            }}
+          >
             <h3 style={{ marginTop: 0 }}>Change Password</h3>
-            <p style={{ marginTop: 0, color: "#475569" }}>Enter a new password and confirm it. Passwords must match.</p>
+            <p style={{ marginTop: 0, color: "#475569" }}>
+              Enter a new password and confirm it. Passwords must match.
+            </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                marginTop: "12px",
+              }}
+            >
               <input
                 type="password"
                 placeholder="New password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                style={{ padding: "10px", borderRadius: "8px", border: "1px solid #e2e8f0" }}
+                style={{
+                  padding: "10px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e8f0",
+                }}
               />
               <input
                 type="password"
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                style={{ padding: "10px", borderRadius: "8px", border: "1px solid #e2e8f0" }}
+                style={{
+                  padding: "10px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e8f0",
+                }}
               />
-              {passwordError && <div style={{ color: "#b91c1c", fontWeight: 700 }}>{passwordError}</div>}
+              {passwordError && (
+                <div style={{ color: "#b91c1c", fontWeight: 700 }}>
+                  {passwordError}
+                </div>
+              )}
             </div>
 
             <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
@@ -1517,7 +1847,9 @@ const DashboardPage = () => {
                 onClick={async () => {
                   setPasswordError("");
                   if (!newPassword || !confirmPassword) {
-                    setPasswordError("Please enter and confirm your new password.");
+                    setPasswordError(
+                      "Please enter and confirm your new password.",
+                    );
                     return;
                   }
                   if (newPassword !== confirmPassword) {
@@ -1531,14 +1863,17 @@ const DashboardPage = () => {
 
                   const token = localStorage.getItem("travelAppToken");
                   try {
-                    const resp = await fetch(`${API_BASE}/api/change-password`, {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        ...authHeaders()
+                    const resp = await fetch(
+                      `${API_BASE}/api/change-password`,
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          ...authHeaders(),
+                        },
+                        body: JSON.stringify({ newPassword }),
                       },
-                      body: JSON.stringify({ newPassword }),
-                    });
+                    );
                     const data = await resp.json();
                     if (resp.ok) {
                       alert(data.message || "Password changed successfully.");
@@ -1547,22 +1882,45 @@ const DashboardPage = () => {
                       setConfirmPassword("");
                       setPasswordError("");
                     } else {
-                      setPasswordError(data.message || "Failed to change password.");
+                      setPasswordError(
+                        data.message || "Failed to change password.",
+                      );
                     }
                   } catch (err) {
                     console.error(err);
                     setPasswordError("Network error while changing password.");
                   }
                 }}
-                style={{ flex: 1, background: "linear-gradient(135deg,#10b981,#059669)", color: "white", border: "none", padding: "10px", borderRadius: "8px", cursor: "pointer", fontWeight: 700 }}
+                style={{
+                  flex: 1,
+                  background: "linear-gradient(135deg,#10b981,#059669)",
+                  color: "white",
+                  border: "none",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                }}
               >
                 Save New Password
               </button>
 
               <button
                 type="button"
-                onClick={() => { setShowChangePasswordModal(false); setPasswordError(""); }}
-                style={{ flex: 1, background: "#f1f5f9", color: "#374151", border: "1px solid #e2e8f0", padding: "10px", borderRadius: "8px", cursor: "pointer", fontWeight: 700 }}
+                onClick={() => {
+                  setShowChangePasswordModal(false);
+                  setPasswordError("");
+                }}
+                style={{
+                  flex: 1,
+                  background: "#f1f5f9",
+                  color: "#374151",
+                  border: "1px solid #e2e8f0",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                }}
               >
                 Cancel
               </button>
@@ -1573,19 +1931,64 @@ const DashboardPage = () => {
 
       {/* Delete Profile Confirmation Modal */}
       {showDeleteConfirm && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10000 }}>
-          <div style={{ background: "white", padding: "20px", borderRadius: "12px", width: "92%", maxWidth: "420px", boxSizing: "border-box", boxShadow: "0 10px 30px rgba(2,6,23,0.2)" }}>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(15,23,42,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "12px",
+              width: "92%",
+              maxWidth: "420px",
+              boxSizing: "border-box",
+              boxShadow: "0 10px 30px rgba(2,6,23,0.2)",
+            }}
+          >
             <h3 style={{ marginTop: 0, color: "#b91c1c" }}>Delete Profile</h3>
-            <p style={{ marginTop: 0, color: "#475569" }}>This action cannot be undone. Your profile and all saved data will be permanently deleted. Type DELETE in the field below to confirm.</p>
+            <p style={{ marginTop: 0, color: "#475569" }}>
+              This action cannot be undone. Your profile and all saved data will
+              be permanently deleted. Type DELETE in the field below to confirm.
+            </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                marginTop: "12px",
+              }}
+            >
               <input
                 type="text"
                 placeholder="Type DELETE to confirm"
-                onChange={(e) => setDeleteError(e.target.value === "DELETE" ? "" : "Type DELETE to confirm")}
-                style={{ padding: "10px", borderRadius: "8px", border: "1px solid #e2e8f0" }}
+                onChange={(e) =>
+                  setDeleteError(
+                    e.target.value === "DELETE" ? "" : "Type DELETE to confirm",
+                  )
+                }
+                style={{
+                  padding: "10px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e8f0",
+                }}
               />
-              {deleteError && <div style={{ color: "#b91c1c", fontWeight: 700 }}>{deleteError}</div>}
+              {deleteError && (
+                <div style={{ color: "#b91c1c", fontWeight: 700 }}>
+                  {deleteError}
+                </div>
+              )}
             </div>
 
             <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
@@ -1594,7 +1997,9 @@ const DashboardPage = () => {
                 onClick={async () => {
                   // Only proceed if user typed DELETE
                   if (deleteError) {
-                    alert("Please type DELETE exactly to confirm profile deletion.");
+                    alert(
+                      "Please type DELETE exactly to confirm profile deletion.",
+                    );
                     return;
                   }
 
@@ -1604,7 +2009,7 @@ const DashboardPage = () => {
                       method: "DELETE",
                       headers: {
                         "Content-Type": "application/json",
-                        ...authHeaders()
+                        ...authHeaders(),
                       },
                     });
                     const data = await resp.json();
@@ -1613,7 +2018,9 @@ const DashboardPage = () => {
                       localStorage.removeItem("travelAppLoggedIn");
                       localStorage.removeItem("travelAppToken");
                       localStorage.removeItem("travelAppUser");
-                      alert(data.message || "Profile deleted. Redirecting to home.");
+                      alert(
+                        data.message || "Profile deleted. Redirecting to home.",
+                      );
                       navigate("/");
                     } else {
                       alert(data.message || "Failed to delete profile.");
@@ -1623,15 +2030,36 @@ const DashboardPage = () => {
                     alert("Network error while deleting profile.");
                   }
                 }}
-                style={{ flex: 1, background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "white", border: "none", padding: "10px", borderRadius: "8px", cursor: "pointer", fontWeight: 700 }}
+                style={{
+                  flex: 1,
+                  background: "linear-gradient(135deg,#ef4444,#dc2626)",
+                  color: "white",
+                  border: "none",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                }}
               >
                 Delete Profile
               </button>
 
               <button
                 type="button"
-                onClick={() => { setShowDeleteConfirm(false); setDeleteError(""); }}
-                style={{ flex: 1, background: "#f1f5f9", color: "#374151", border: "1px solid #e2e8f0", padding: "10px", borderRadius: "8px", cursor: "pointer", fontWeight: 700 }}
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteError("");
+                }}
+                style={{
+                  flex: 1,
+                  background: "#f1f5f9",
+                  color: "#374151",
+                  border: "1px solid #e2e8f0",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                }}
               >
                 Cancel
               </button>
@@ -1641,32 +2069,54 @@ const DashboardPage = () => {
       )}
 
       {showInactivityPrompt && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          background: "rgba(15, 23, 42, 0.6)",
-          backdropFilter: "blur(4px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 9999
-        }}>
-          <div style={{
-            background: "white",
-            padding: "24px",
-            borderRadius: "16px",
-            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-            maxWidth: "400px",
-            width: "90%",
-            textAlign: "center",
-            border: "1px solid #e2e8f0"
-          }}>
-            <h3 style={{ margin: "0 0 12px", color: "#0f172a", fontSize: "1.25rem", fontWeight: "bold" }}>Are you still here?</h3>
-            <p style={{ margin: "0 0 20px", color: "#475569", fontSize: "0.95rem", lineHeight: "1.5" }}>
-              You have been inactive for 28 minutes. Would you like to stay logged in?
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "24px",
+              borderRadius: "16px",
+              boxShadow:
+                "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+              maxWidth: "400px",
+              width: "90%",
+              textAlign: "center",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <h3
+              style={{
+                margin: "0 0 12px",
+                color: "#0f172a",
+                fontSize: "1.25rem",
+                fontWeight: "bold",
+              }}
+            >
+              Are you still here?
+            </h3>
+            <p
+              style={{
+                margin: "0 0 20px",
+                color: "#475569",
+                fontSize: "0.95rem",
+                lineHeight: "1.5",
+              }}
+            >
+              You have been inactive for 28 minutes. Would you like to stay
+              logged in?
             </p>
             <div style={{ display: "flex", gap: "10px" }}>
               <button
@@ -1681,7 +2131,7 @@ const DashboardPage = () => {
                   padding: "12px",
                   fontWeight: "bold",
                   cursor: "pointer",
-                  fontSize: "0.95rem"
+                  fontSize: "0.95rem",
                 }}
               >
                 Yes
@@ -1698,7 +2148,7 @@ const DashboardPage = () => {
                   padding: "12px",
                   fontWeight: "bold",
                   cursor: "pointer",
-                  fontSize: "0.95rem"
+                  fontSize: "0.95rem",
                 }}
               >
                 No

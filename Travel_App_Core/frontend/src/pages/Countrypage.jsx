@@ -58,10 +58,13 @@ const CountryPage = () => {
   }, [country]);
 
   // ⭐ WIKIVOYAGE FETCH
+  const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
+
   useEffect(() => {
-    fetch(`http://localhost:4000/api/wikivoyage-country/${country}`)
+    fetch(`${API_BASE}/api/wikivoyage-country/${country}`)
       .then((res) => res.json())
-      .then((data) => setWiki(data));
+      .then((data) => setWiki(data))
+      .catch((err) => console.error("Fetch error:", err));
   }, [country]);
 
   if (!wiki) return <div className="loading">Loading...</div>;
