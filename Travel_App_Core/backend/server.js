@@ -4,12 +4,14 @@ import cors from "cors";
 import * as cheerio from "cheerio";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import pool from "./db/index.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
-// Import newly added query helpers
+// Import routers and database query helpers
+import usersRouter from "./usersRouter.js";
 import { createCity, getCityById, searchCities } from "./db/queries/cities.js";
 import {
   createPlace,
@@ -45,13 +47,12 @@ function cleanHTML(html) {
     .trim();
 }
 
-//**express middlewares **//
+// ** Express App Setup ** //
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // Mount users router (JWT-based auth endpoints) at /api
-const { default: usersRouter } = await import("./usersRouter.js");
 app.use("/api", usersRouter);
 
 const bindParams = (sql, params = []) => {
@@ -60,7 +61,7 @@ const bindParams = (sql, params = []) => {
   return { text: sqlWithBindings, values: params };
 };
 
-//**run core tables */
+// ** Database Schema Initialization ** //
 const initializeDatabase = async () => {
   try {
     await pool.query(`
@@ -169,8 +170,7 @@ const initializeDatabase = async () => {
 
 initializeDatabase();
 
-//**Database wrapper helpers */
-
+// ** Database Wrapper Helpers ** //
 const runDb = async (sql, params = []) => {
   const query = bindParams(sql, params);
   const result = await pool.query(query.text, query.values);
@@ -193,26 +193,16 @@ const allDb = async (sql, params = []) => {
   return result.rows;
 };
 
-//**token extractor helper */
-
+// ** Auth Helpers ** //
 const getToken = (req) => {
   const authHeader = req.headers.authorization || "";
   if (authHeader.startsWith("Bearer ")) {
     return authHeader.replace("Bearer ", "").trim();
   }
-
-  if (req.body && req.body.token) {
-    return req.body.token;
-  }
-
-  if (req.query && req.query.token) {
-    return req.query.token;
-  }
-
+  if (req.body && req.body.token) return req.body.token;
+  if (req.query && req.query.token) return req.query.token;
   return null;
 };
-
-//**user auth & session validator */
 
 const getUserFromToken = async (token) => {
   if (!token) return null;
@@ -248,40 +238,30 @@ const getUserFromToken = async (token) => {
   }
 };
 
-//**health check endpoint */
-
+// ** Health & System Endpoints ** //
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-//**user logout endpoint */
-
 app.post("/api/logout", async (req, res) => {
   const token = getToken(req);
-
   if (token) {
     await runDb("DELETE FROM sessions WHERE token = ?", [token]);
   }
-
   return res.json({ success: true, message: "Logged out successfully." });
 });
-
-//**get current user endpoint//profile */
 
 app.get("/api/me", async (req, res) => {
   const token = getToken(req);
   const user = await getUserFromToken(token);
-
   if (!user) {
     return res
       .status(401)
       .json({ success: false, message: "Not authenticated." });
   }
-
   return res.json({ success: true, user });
 });
 
-// Change password endpoint
 app.post("/api/change-password", async (req, res) => {
   const token = getToken(req);
   const { newPassword } = req.body || {};
@@ -299,13 +279,11 @@ app.post("/api/change-password", async (req, res) => {
       .json({ success: false, message: "Session expired or invalid." });
   }
 
-  if (!newPassword || typeof newPassword !== "string") {
-    return res
-      .status(400)
-      .json({ success: false, message: "New password is required." });
-  }
-
-  if (newPassword.length < 8) {
+  if (
+    !newPassword ||
+    typeof newPassword !== "string" ||
+    newPassword.length < 8
+  ) {
     return res.status(400).json({
       success: false,
       message: "Password must be at least 8 characters long.",
@@ -314,12 +292,10 @@ app.post("/api/change-password", async (req, res) => {
 
   try {
     const passwordHash = await bcrypt.hash(newPassword, 10);
-
     await runDb(`UPDATE users SET password_hash = ? WHERE id = ?`, [
       passwordHash,
       authenticatedUser.id,
     ]);
-
     await runDb(`DELETE FROM sessions WHERE user_id = ? AND token != ?`, [
       authenticatedUser.id,
       token,
@@ -337,10 +313,8 @@ app.post("/api/change-password", async (req, res) => {
   }
 });
 
-// Delete profile endpoint
 app.delete("/api/profile", async (req, res) => {
   const token = getToken(req);
-
   if (!token) {
     return res
       .status(401)
@@ -356,7 +330,6 @@ app.delete("/api/profile", async (req, res) => {
 
   try {
     await runDb(`DELETE FROM users WHERE id = ?`, [authenticatedUser.id]);
-
     return res.json({
       success: true,
       message: "Profile deleted successfully.",
@@ -369,16 +342,10 @@ app.delete("/api/profile", async (req, res) => {
   }
 });
 
-//**save place endpoints POST, DELETE AND GET */
+// ** Saved Places Endpoints ** //
 app.post("/api/save-place", async (req, res) => {
   const token = getToken(req);
   const { type, name } = req.body || {};
-
-  if (!token) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Login required to save places." });
-  }
 
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
@@ -386,7 +353,6 @@ app.post("/api/save-place", async (req, res) => {
       .status(401)
       .json({ success: false, message: "Session expired." });
   }
-
   if (!type || !name) {
     return res
       .status(400)
@@ -423,24 +389,11 @@ app.delete("/api/save-place", async (req, res) => {
   const token = getToken(req);
   const { type, name } = req.body || {};
 
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Login required to delete saved places.",
-    });
-  }
-
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
     return res
       .status(401)
       .json({ success: false, message: "Session expired." });
-  }
-
-  if (!type || !name) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Place details are required." });
   }
 
   try {
@@ -470,7 +423,6 @@ app.delete("/api/save-place", async (req, res) => {
 app.get("/api/saved-places", async (req, res) => {
   const token = getToken(req);
   const authenticatedUser = await getUserFromToken(token);
-
   if (!authenticatedUser) {
     return res.status(401).json({ success: false, message: "Login required." });
   }
@@ -479,15 +431,13 @@ app.get("/api/saved-places", async (req, res) => {
     `SELECT * FROM saved_places WHERE user_id = ? ORDER BY created_at DESC`,
     [authenticatedUser.id],
   );
-
   return res.json({ success: true, savedPlaces });
 });
 
-// Itineraries Endpoints GET, POST AND DELETE//
+// ** Itineraries Endpoints ** //
 app.get("/api/itineraries", async (req, res) => {
   const token = getToken(req);
   const authenticatedUser = await getUserFromToken(token);
-
   if (!authenticatedUser) {
     return res.status(401).json({ success: false, message: "Login required." });
   }
@@ -510,12 +460,6 @@ app.post("/api/itineraries", async (req, res) => {
   const token = getToken(req);
   const { name, points } = req.body || {};
 
-  if (!token) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Login required to save itineraries." });
-  }
-
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
     return res
@@ -524,10 +468,12 @@ app.post("/api/itineraries", async (req, res) => {
   }
 
   if (!name || !points) {
-    return res.status(400).json({
-      success: false,
-      message: "Itinerary name and points are required.",
-    });
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "Itinerary name and points are required.",
+      });
   }
 
   try {
@@ -564,24 +510,11 @@ app.delete("/api/itineraries", async (req, res) => {
   const token = getToken(req);
   const { name } = req.body || {};
 
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Login required to delete itineraries.",
-    });
-  }
-
   const authenticatedUser = await getUserFromToken(token);
   if (!authenticatedUser) {
     return res
       .status(401)
       .json({ success: false, message: "Session expired." });
-  }
-
-  if (!name) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Itinerary name is required." });
   }
 
   try {
@@ -608,9 +541,7 @@ app.delete("/api/itineraries", async (req, res) => {
   }
 });
 
-// New CRUD endpoints for cities, places, routes, pins and itinerary items
-
-// Cities
+// ** Cities CRUD ** //
 app.get("/api/cities", async (req, res) => {
   const q = req.query.q || "";
   try {
@@ -670,7 +601,7 @@ app.post("/api/cities", async (req, res) => {
   }
 });
 
-// Places
+// ** Places CRUD ** //
 app.get("/api/places", async (req, res) => {
   const q = req.query.q || "";
   try {
@@ -726,7 +657,7 @@ app.post("/api/places", async (req, res) => {
   }
 });
 
-// Pins
+// ** Pins CRUD ** //
 app.post("/api/pins", async (req, res) => {
   const token = getToken(req);
   const user = await getUserFromToken(token);
@@ -792,7 +723,7 @@ app.delete("/api/pins/:id", async (req, res) => {
   }
 });
 
-// Routes (user-created routes)
+// ** Routes CRUD ** //
 app.post("/api/routes", async (req, res) => {
   const token = getToken(req);
   const user = await getUserFromToken(token);
@@ -864,7 +795,7 @@ app.delete("/api/routes/:id", async (req, res) => {
   }
 });
 
-// Itinerary items
+// ** Itinerary Items CRUD ** //
 app.post("/api/itineraries/:itineraryId/items", async (req, res) => {
   const token = getToken(req);
   const user = await getUserFromToken(token);
@@ -949,11 +880,9 @@ app.delete("/api/itineraries/:itineraryId/items/:id", async (req, res) => {
   }
 });
 
-//City Page GET from Wikivoyage API//
-
+// ** Wikivoyage API Integrations ** //
 app.get("/api/wikivoyage/:city", async (req, res) => {
   const city = req.params.city;
-
   try {
     const response = await axios.get("https://en.wikivoyage.org/w/api.php", {
       params: {
@@ -982,35 +911,26 @@ app.get("/api/wikivoyage/:city", async (req, res) => {
     };
 
     const sections = [];
-
     Object.entries(wantedIds).forEach(([id, finalName]) => {
       const heading = $(`h2#${id}`).parent();
       if (!heading.length) return;
-
       const blocks = heading.nextUntil("h2");
       let content = "";
       blocks.each((_, block) => {
         content += cleanHTML($.html(block));
       });
-
       sections.push({ title: finalName, content });
     });
 
-    res.json({
-      title: response.data.parse.title,
-      sections,
-    });
+    res.json({ title: response.data.parse.title, sections });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch Wikivoyage data" });
   }
 });
 
-//CountryPage GET from Wikivoyage API//
-
 app.get("/api/wikivoyage-country/:country", async (req, res) => {
   const country = req.params.country;
-
   try {
     const response = await axios.get("https://en.wikivoyage.org/w/api.php", {
       params: {
@@ -1040,39 +960,28 @@ app.get("/api/wikivoyage-country/:country", async (req, res) => {
     };
 
     const sections = [];
-
     Object.entries(wantedIds).forEach(([id, finalName]) => {
       const heading = $(`h2#${id}`).parent();
       if (!heading.length) return;
-
       const blocks = heading.nextUntil("h2");
-
       let content = "";
       blocks.each((_, block) => {
         content += cleanHTML($.html(block));
       });
-
-      sections.push({
-        title: finalName,
-        content,
-      });
+      sections.push({ title: finalName, content });
     });
 
-    res.json({
-      title: response.data.parse.title,
-      sections,
-    });
+    res.json({ title: response.data.parse.title, sections });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch country data" });
   }
 });
 
-// ✅ FIX: Fixed static path resolution for Render deployment
+// ** Static Asset Serving (Frontend Build) ** //
 const buildPath = path.join(__dirname, "../frontend/build");
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
-  // Return index.html for any unknown route (SPA fallback)
   app.get("*", (_req, res) => {
     res.sendFile(path.join(buildPath, "index.html"));
   });
@@ -1080,6 +989,6 @@ if (fs.existsSync(buildPath)) {
   console.log("Frontend build not found at", buildPath);
 }
 
-//**server start using environment PORT (for hosting) or 4000 locally */
-const PORT = process.env.PORT || 10000;
+// ** Server Initialization ** //
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));

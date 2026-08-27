@@ -1,5 +1,7 @@
-Change backend default port to 10000
+Apply deployment fixes: default server port 10000 and frontend auth header fixes
 
-- Use PORT env or default to 10000 instead of 4000
+- Default backend port changed to 10000
+- Replaced Authorization placeholders with authHeaders helper in frontend
+- Rebuilt frontend to use relative API paths
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
