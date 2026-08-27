@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "node backend/server.js"
+    "start": "node Travel_App_Core/backend/server.js"
   },
   "dependencies": {
     "@geoapify/geocoder-autocomplete": "^3.0.1",
