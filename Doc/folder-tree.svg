@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="700" viewBox="0 0 900 700">
+  <style>
+    .folder { fill:#f3f6ff; stroke:#3b82f6; stroke-width:2; rx:6; }
+    .file { fill:#ffffff; stroke:#94a3b8; stroke-width:1.2; rx:4; }
+    .text { font-family: Arial, Helvetica, sans-serif; font-size:13px; fill:#0f172a; }
+    .title { font-weight:700; font-size:14px; }
+    .small { font-size:12px; fill:#334155; }
+    .line { stroke: #94a3b8; stroke-width:1.2; }
+  </style>
+
+  <!-- Root -->
+  <rect x="30" y="20" width="840" height="56" class="folder"/>
+  <text x="48" y="56" class="text title">Travelapp (root)</text>
+  <text x="48" y="74" class="text small">.git • package.json • package-lock.json • Doc/ • Travel_App_Core/</text>
+
+  <!-- Travel_App_Core -->
+  <rect x="60" y="110" width="380" height="500" class="folder"/>
+  <text x="78" y="142" class="text title">Travel_App_Core/</text>
+  <text x="78" y="160" class="text small">README.md</text>
+
+  <!-- backend box -->
+  <rect x="86" y="190" width="330" height="220" class="folder"/>
+  <text x="106" y="216" class="text title">backend/</text>
+  <text x="106" y="236" class="text">.env • package.json</text>
+  <text x="106" y="254" class="text">schema.sql</text>
+  <text x="106" y="272" class="text">server.js</text>
+  <text x="106" y="290" class="text">wikivoyage_raw.html</text>
+
+  <!-- frontend box -->
+  <rect x="470" y="110" width="400" height="500" class="folder"/>
+  <text x="488" y="142" class="text title">frontend/</text>
+  <text x="488" y="162" class="text small">.env • package.json • public/ • src/ • build/</text>
+
+  <!-- frontend public -->
+  <rect x="504" y="190" width="340" height="120" class="file"/>
+  <text x="518" y="210" class="text">public/</text>
+  <text x="518" y="228" class="text">index.html</text>
+  <text x="518" y="246" class="text">images/ • manifest.json</text>
+
+  <!-- frontend src -->
+  <rect x="504" y="330" width="340" height="240" class="file"/>
+  <text x="518" y="354" class="text">src/</text>
+  <text x="518" y="372" class="text">App.jsx • index.js • index.css</text>
+  <text x="518" y="390" class="text">api/unsplash.js</text>
+  <text x="518" y="408" class="text">components/ (AuthCard, SaveButton, Map, SaveButton)</text>
+  <text x="518" y="426" class="text">pages/ (DashboardPage, CityPage, CountryPage, ProfilePage)</text>
+  <text x="518" y="444" class="text">layout/ • styles/</text>
+
+  <!-- lines from root to Travel_App_Core boxes -->
+  <line x1="450" y1="76" x2="450" y2="110" class="line"/>
+
+  <!-- connectors -->
+  <line x1="260" y1="166" x2="260" y2="190" class="line"/>
+  <line x1="260" y1="190" x2="260" y2="410" class="line"/>
+  <line x1="520" y1="166" x2="520" y2="190" class="line"/>
+
+  <!-- Legend -->
+  <rect x="30" y="620" width="380" height="60" rx="6" class="file"/>
+  <text x="48" y="642" class="text title">Legend</text>
+  <text x="48" y="660" class="text">Blue rounded boxes = folders, white boxes = files / grouped folders</text>
+
+  <!-- footer note -->
+  <text x="430" y="690" class="text small">Generated folder tree diagram</text>
+</svg>
