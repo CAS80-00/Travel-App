@@ -5,7 +5,6 @@ import "../styles/DashboardPage.css";
 import SearchBar from "../components/SearchBar";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
-const response = await fetch(`${API_BASE_URL}/api/travel-data`);
 
 const authHeaders = () => {
   const token = localStorage.getItem("travelAppToken");
