@@ -1,26 +1,59 @@
-CREATE TABLE IF NOT EXISTS users (
+DROP TABLE IF EXISTS pins CASCADE;
+DROP TABLE IF EXISTS saved_places CASCADE;
+DROP TABLE IF EXISTS itineraries CASCADE;
+DROP TABLE IF EXISTS places CASCADE;
+DROP TABLE IF EXISTS cities CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
+CREATE TABLE users (
   id SERIAL PRIMARY KEY,
-  first_name VARCHAR(100) NOT NULL,
-  last_name VARCHAR(100) NOT NULL,
-  email VARCHAR(255) NOT NULL UNIQUE,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS sessions (
+CREATE TABLE saved_places (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  token VARCHAR(255) NOT NULL UNIQUE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS saved_places (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
   type VARCHAR(50) NOT NULL,
   name VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (user_id, type, name)
+  CONSTRAINT unique_user_saved_place UNIQUE (user_id, type, name)
+);
+
+CREATE TABLE itineraries (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  points JSONB NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT unique_user_itinerary UNIQUE (user_id, name)
+);
+
+CREATE TABLE cities (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) UNIQUE NOT NULL,
+  country VARCHAR(255) NOT NULL,
+  latitude NUMERIC(9, 6),
+  longitude NUMERIC(9, 6)
+);
+
+CREATE TABLE places (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) UNIQUE NOT NULL,
+  address TEXT,
+  latitude NUMERIC(9, 6),
+  longitude NUMERIC(9, 6)
+);
+
+CREATE TABLE pins (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  place_id INT REFERENCES places(id) ON DELETE CASCADE,
+  note TEXT,
+  lat NUMERIC(9, 6),
+  lng NUMERIC(9, 6),
+  metadata JSONB
 );

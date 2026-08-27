@@ -5,14 +5,17 @@ import * as cheerio from "cheerio";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import pg from "pg";
+import pool from "./db/index.js";
+
+// Import newly added query helpers
+import { createCity, getCityById, searchCities } from './db/queries/cities.js';
+import { createPlace, getPlaceById, searchPlacesByName } from './db/queries/places.js';
+import { createRoute, getRoutesByUser, deleteRoute } from './db/queries/routes.js';
+import { addItineraryItem, getItemsForItinerary, deleteItineraryItem } from './db/queries/itinerary_items.js';
+import { createPin, getPinsByUser, deletePin } from './db/queries/pins.js';
 
 dotenv.config();
 
-const { Pool } = pg;
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
 const JWT_SECRET = process.env.JWT_SECRET || "development-secret";
 
 function cleanHTML(html) {
@@ -28,6 +31,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Mount users router (JWT-based auth endpoints) at /api
+const { default: usersRouter } = await import('./usersRouter.js');
+app.use('/api', usersRouter);
+
 const bindParams = (sql, params = []) => {
   let index = 1;
   const sqlWithBindings = sql.replace(/\?/g, () => `$${index++}`);
@@ -37,6 +44,7 @@ const bindParams = (sql, params = []) => {
 const initializeDatabase = async () => {
   try {
     await pool.query(`
+      -- Core
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         first_name VARCHAR(100) NOT NULL,
@@ -64,13 +72,72 @@ const initializeDatabase = async () => {
         UNIQUE (user_id, type, name)
       );
 
+      -- Itineraries as JSONB
       CREATE TABLE IF NOT EXISTS itineraries (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
-        points TEXT NOT NULL,
+        points JSONB NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE (user_id, name)
+      );
+
+      -- Cities
+      CREATE TABLE IF NOT EXISTS cities (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        country VARCHAR(255),
+        latitude DOUBLE PRECISION,
+        longitude DOUBLE PRECISION,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Places
+      CREATE TABLE IF NOT EXISTS places (
+        id SERIAL PRIMARY KEY,
+        google_place_id VARCHAR(255),
+        name VARCHAR(255) NOT NULL,
+        address TEXT,
+        latitude DOUBLE PRECISION,
+        longitude DOUBLE PRECISION,
+        types TEXT[],
+        rating NUMERIC,
+        photo_refs TEXT[],
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Routes
+      CREATE TABLE IF NOT EXISTS routes (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        start_place_id INTEGER REFERENCES places(id) ON DELETE SET NULL,
+        end_place_id INTEGER REFERENCES places(id) ON DELETE SET NULL,
+        distance_meters INTEGER,
+        duration_seconds INTEGER,
+        polyline TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Pins
+      CREATE TABLE IF NOT EXISTS pins (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        place_id INTEGER REFERENCES places(id) ON DELETE SET NULL,
+        note TEXT,
+        lat DOUBLE PRECISION,
+        lng DOUBLE PRECISION,
+        metadata JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Itinerary items
+      CREATE TABLE IF NOT EXISTS itinerary_items (
+        id SERIAL PRIMARY KEY,
+        itinerary_id INTEGER NOT NULL REFERENCES itineraries(id) ON DELETE CASCADE,
+        place_id INTEGER REFERENCES places(id) ON DELETE SET NULL,
+        day_number INTEGER,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -167,133 +234,8 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-//**user registration endpoint */
-
-app.post("/api/register", async (req, res) => {
-  const { firstName, lastName, email, password, confirmPassword } =
-    req.body || {};
-
-  if (!firstName || !lastName || !email || !password || !confirmPassword) {
-    return res.status(400).json({
-      success: false,
-      message: "Please complete all registration fields.",
-    });
-  }
-
-  if (password !== confirmPassword) {
-    return res.status(400).json({
-      success: false,
-      message: "Passwords do not match.",
-    });
-  }
-
-  if (password.length < 6) {
-    return res.status(400).json({
-      success: false,
-      message: "Password must be at least 6 characters long.",
-    });
-  }
-
-  const existingUser = await getDb("SELECT id FROM users WHERE email = ?", [
-    email.trim().toLowerCase(),
-  ]);
-  if (existingUser) {
-    return res.status(409).json({
-      success: false,
-      message: "An account with this email already exists.",
-    });
-  }
-
-  try {
-    const passwordHash = await bcrypt.hash(password, 10);
-    const inserted = await runDb(
-      `INSERT INTO users (first_name, last_name, email, password_hash)
-       VALUES (?, ?, ?, ?)
-       RETURNING id`,
-      [
-        firstName.trim(),
-        lastName.trim(),
-        email.trim().toLowerCase(),
-        passwordHash,
-      ],
-    );
-
-    return res.status(201).json({
-      success: true,
-      message:
-        "Successfully Registration. Log in and start building itineraries",
-      user: {
-        id: inserted.id,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim().toLowerCase(),
-      },
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Registration failed. Please try again.",
-    });
-  }
-});
-
-//**user login endpoint */
-
-app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body || {};
-
-  if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: "Email and password are required.",
-    });
-  }
-
-  const user = await getDb("SELECT * FROM users WHERE email = ?", [
-    email.trim().toLowerCase(),
-  ]);
-  if (!user) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid email or password.",
-    });
-  }
-
-  const validPassword = await bcrypt.compare(password, user.password_hash);
-  if (!validPassword) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid email or password.",
-    });
-  }
-
-  const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
-    expiresIn: "28m",
-  });
-  const expiresAt = new Date(Date.now() + 28 * 60 * 1000).toISOString();
-
-  await runDb(
-    `INSERT INTO sessions (user_id, token, expires_at, last_activity)
-     VALUES (?, ?, ?, ?)`,
-    [user.id, token, expiresAt, new Date().toISOString()],
-  );
-
-  const sessionUser = {
-    id: user.id,
-    firstName: user.first_name,
-    lastName: user.last_name,
-    email: user.email,
-  };
-
-  return res.json({
-    success: true,
-    message: "Login successful.",
-    token,
-    user: sessionUser,
-  });
-});
-
+// Registration endpoints moved to usersRouter.js (mounted at /api)
+// Login endpoints moved to usersRouter.js (mounted at /api)
 //**user logout endpoint */
 
 app.post("/api/logout", async (req, res) => {
@@ -646,6 +588,234 @@ app.delete("/api/itineraries", async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Unable to delete itinerary." });
+  }
+});
+
+// New CRUD endpoints for cities, places, routes, pins and itinerary items
+
+// Cities
+app.get('/api/cities', async (req, res) => {
+  const q = req.query.q || '';
+  try {
+    if (!q) return res.json({ success: true, cities: [] });
+    const cities = await searchCities(q, 20);
+    return res.json({ success: true, cities });
+  } catch (err) {
+    console.error('Cities search error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to search cities.' });
+  }
+});
+
+app.get('/api/cities/:id', async (req, res) => {
+  try {
+    const c = await getCityById(req.params.id);
+    if (!c) return res.status(404).json({ success: false, message: 'City not found.' });
+    return res.json({ success: true, city: c });
+  } catch (err) {
+    console.error('Get city error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch city.' });
+  }
+});
+
+app.post('/api/cities', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  const { name, country, latitude, longitude } = req.body || {};
+  if (!name) return res.status(400).json({ success: false, message: 'City name required.' });
+  try {
+    const city = await createCity(name, country || null, latitude || null, longitude || null);
+    return res.status(201).json({ success: true, city });
+  } catch (err) {
+    console.error('Create city error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to create city.' });
+  }
+});
+
+// Places
+app.get('/api/places', async (req, res) => {
+  const q = req.query.q || '';
+  try {
+    if (!q) return res.json({ success: true, places: [] });
+    const places = await searchPlacesByName(q, 20);
+    return res.json({ success: true, places });
+  } catch (err) {
+    console.error('Places search error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to search places.' });
+  }
+});
+
+app.get('/api/places/:id', async (req, res) => {
+  try {
+    const p = await getPlaceById(req.params.id);
+    if (!p) return res.status(404).json({ success: false, message: 'Place not found.' });
+    return res.json({ success: true, place: p });
+  } catch (err) {
+    console.error('Get place error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch place.' });
+  }
+});
+
+app.post('/api/places', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  const data = req.body || {};
+  if (!data.name) return res.status(400).json({ success: false, message: 'Place name required.' });
+
+  try {
+    const place = await createPlace(data);
+    return res.status(201).json({ success: true, place });
+  } catch (err) {
+    console.error('Create place error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to create place.' });
+  }
+});
+
+// Pins
+app.post('/api/pins', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  const { place_id, note, lat, lng, metadata } = req.body || {};
+  try {
+    const pin = await createPin(user.id, place_id || null, note || null, lat || null, lng || null, metadata || {});
+    return res.status(201).json({ success: true, pin });
+  } catch (err) {
+    console.error('Create pin error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to create pin.' });
+  }
+});
+
+app.get('/api/pins', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  try {
+    const pins = await getPinsByUser(user.id);
+    return res.json({ success: true, pins });
+  } catch (err) {
+    console.error('Get pins error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch pins.' });
+  }
+});
+
+app.delete('/api/pins/:id', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  try {
+    await deletePin(req.params.id, user.id);
+    return res.json({ success: true, message: 'Pin deleted.' });
+  } catch (err) {
+    console.error('Delete pin error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to delete pin.' });
+  }
+});
+
+// Routes (user-created routes)
+app.post('/api/routes', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  const { start_place_id, end_place_id, distance_meters, duration_seconds, polyline } = req.body || {};
+  try {
+    const route = await createRoute(user.id, start_place_id || null, end_place_id || null, distance_meters || null, duration_seconds || null, polyline || null);
+    return res.status(201).json({ success: true, route });
+  } catch (err) {
+    console.error('Create route error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to create route.' });
+  }
+});
+
+app.get('/api/routes', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  try {
+    const routes = await getRoutesByUser(user.id);
+    return res.json({ success: true, routes });
+  } catch (err) {
+    console.error('Get routes error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch routes.' });
+  }
+});
+
+app.delete('/api/routes/:id', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  try {
+    await deleteRoute(req.params.id, user.id);
+    return res.json({ success: true, message: 'Route deleted.' });
+  } catch (err) {
+    console.error('Delete route error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to delete route.' });
+  }
+});
+
+// Itinerary items
+app.post('/api/itineraries/:itineraryId/items', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  const itineraryId = req.params.itineraryId;
+  // verify ownership
+  const owner = await getDb(`SELECT user_id FROM itineraries WHERE id = ?`, [itineraryId]);
+  if (!owner || owner.user_id !== user.id) return res.status(403).json({ success: false, message: 'Forbidden' });
+
+  const { place_id, day_number, notes } = req.body || {};
+  try {
+    const item = await addItineraryItem(itineraryId, place_id || null, day_number || null, notes || null);
+    return res.status(201).json({ success: true, item });
+  } catch (err) {
+    console.error('Add itinerary item error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to add itinerary item.' });
+  }
+});
+
+app.get('/api/itineraries/:itineraryId/items', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  const itineraryId = req.params.itineraryId;
+  const owner = await getDb(`SELECT user_id FROM itineraries WHERE id = ?`, [itineraryId]);
+  if (!owner || owner.user_id !== user.id) return res.status(403).json({ success: false, message: 'Forbidden' });
+
+  try {
+    const items = await getItemsForItinerary(itineraryId);
+    return res.json({ success: true, items });
+  } catch (err) {
+    console.error('Get itinerary items error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch itinerary items.' });
+  }
+});
+
+app.delete('/api/itineraries/:itineraryId/items/:id', async (req, res) => {
+  const token = getToken(req);
+  const user = await getUserFromToken(token);
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+
+  const itineraryId = req.params.itineraryId;
+  const owner = await getDb(`SELECT user_id FROM itineraries WHERE id = ?`, [itineraryId]);
+  if (!owner || owner.user_id !== user.id) return res.status(403).json({ success: false, message: 'Forbidden' });
+
+  try {
+    await deleteItineraryItem(req.params.id, itineraryId);
+    return res.json({ success: true, message: 'Item deleted.' });
+  } catch (err) {
+    console.error('Delete itinerary item error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to delete itinerary item.' });
   }
 });
 
