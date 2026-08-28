@@ -1,0 +1,66 @@
+// Graphviz DOT file: Travelapp folder architecture
+// Render with: dot -Tpng folder-architecture.dot -o folder-architecture.png
+
+digraph TravelApp {
+  rankdir=TB;
+  node [shape=folder, style=filled, fillcolor="#f2f2f2"];
+
+  root [label="C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp", shape=box, fillcolor="#ddeeff"];
+
+  subgraph cluster_core {
+    label="Travel_App_Core";
+    style=rounded;
+    backend [label="backend/"];
+    frontend [label="frontend/"];
+    doc [label="Doc/"];
+  }
+
+  root -> backend;
+  root -> frontend;
+  root -> doc;
+
+  backend -> server [label="server.js"];
+  backend -> backend_pkg [label="package.json"];
+  backend -> schema [label="schema.sql"];
+  backend -> db [label="db/"];
+  backend -> usersRouter [label="usersRouter.js"];
+  backend -> middleware [label="middleware/"];
+  backend -> scripts [label="scripts/"];
+
+  db -> db_index [label="index.js"];
+  db -> queries [label="queries/"];
+  queries -> users_js [label="users.js"];
+  queries -> sessions_js [label="sessions.js"];
+  queries -> saved_places_js [label="saved_places.js"];
+  queries -> itineraries_js [label="itineraries.js"];
+  queries -> cities_js [label="cities.js"];
+  queries -> places_js [label="places.js"];
+  queries -> routes_js [label="routes.js"];
+  queries -> pins_js [label="pins.js"];
+  queries -> items_js [label="itinerary_items.js"];
+
+  middleware -> requireUser [label="requireUser.js"];
+  scripts -> seed [label="seed.js"];
+  scripts -> create_user [label="create_user.js"];
+
+  frontend -> fe_pkg [label="package.json"];
+  frontend -> fe_env [label=".env"];
+  frontend -> public [label="public/"];
+  frontend -> src [label="src/"];
+  frontend -> build [label="build/ (generated)"];
+
+  src -> components [label="components/"];
+  src -> pages [label="pages/"];
+  src -> styles [label="styles/"];
+
+  components -> auth [label="AuthCard.jsx"];
+  components -> save [label="SaveButton.jsx"];
+  components -> search [label="SearchBar.jsx"];
+
+  pages -> dashboard [label="DashboardPage.jsx"];
+  pages -> city [label="CityPage.jsx"];
+  pages -> country [label="Countrypage.jsx"];
+
+  doc -> svg [label="folder-tree.svg"];
+  doc -> mermaid [label="folder-architecture.mmd"];
+}

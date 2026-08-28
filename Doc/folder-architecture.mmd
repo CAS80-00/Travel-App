@@ -1,0 +1,128 @@
+%% Folder architecture (Mermaid)
+%% View with VS Code Mermaid Preview or on GitHub if supported
+
+flowchart TD
+  root["C:/Users/dilan/OneDrive/Documents/Fullstack/CARLOS/Travelapp"]
+
+  subgraph travel_core [Travel_App_Core]
+    direction TB
+    backend["backend/"]
+    frontend["frontend/"]
+    doc["Doc/"]
+  end
+
+  root --> travel_core
+
+  %% Backend subtree
+  subgraph backend_tree [backend]
+    direction TB
+    server["server.js"]
+    backend_pkg["package.json"]
+    schema["schema.sql"]
+    db_dir["db/"]
+    usersRouter["usersRouter.js"]
+    middleware_dir["middleware/"]
+    scripts_dir["scripts/"]
+  end
+
+  backend --> backend_tree
+  backend_tree --> server
+  backend_tree --> backend_pkg
+  backend_tree --> schema
+  backend_tree --> db_dir
+  backend_tree --> usersRouter
+  backend_tree --> middleware_dir
+  backend_tree --> scripts_dir
+
+  subgraph db_sub [db]
+    direction TB
+    db_index["index.js"]
+    queries["queries/"]
+  end
+  db_dir --> db_sub
+  db_sub --> db_index
+  db_sub --> queries
+
+  subgraph queries_sub [db/queries]
+    direction TB
+    q_users["users.js"]
+    q_sessions["sessions.js"]
+    q_saved["saved_places.js"]
+    q_itineraries["itineraries.js"]
+    q_cities["cities.js"]
+    q_places["places.js"]
+    q_routes["routes.js"]
+    q_pins["pins.js"]
+    q_items["itinerary_items.js"]
+  end
+  queries --> queries_sub
+  queries_sub --> q_users
+  queries_sub --> q_sessions
+  queries_sub --> q_saved
+  queries_sub --> q_itineraries
+  queries_sub --> q_cities
+  queries_sub --> q_places
+  queries_sub --> q_routes
+  queries_sub --> q_pins
+  queries_sub --> q_items
+
+  middleware_dir --> mw_require["requireUser.js"]
+  scripts_dir --> seed["seed.js"]
+  scripts_dir --> create_user["create_user.js"]
+
+  %% Frontend subtree
+  subgraph frontend_tree [frontend]
+    direction TB
+    fe_pkg["package.json"]
+    fe_env[".env"]
+    public_dir["public/"]
+    src_dir["src/"]
+    build_dir["build/ (generated)"]
+  end
+
+  frontend --> frontend_tree
+  frontend_tree --> fe_pkg
+  frontend_tree --> fe_env
+  frontend_tree --> public_dir
+  frontend_tree --> src_dir
+  frontend_tree --> build_dir
+
+  subgraph src_sub [src]
+    direction TB
+    comp_dir["components/"]
+    pages_dir["pages/"]
+    styles_dir["styles/"]
+  end
+  src_dir --> src_sub
+  src_sub --> comp_dir
+  src_sub --> pages_dir
+  src_sub --> styles_dir
+
+  subgraph components [components]
+    direction TB
+    c_auth["AuthCard.jsx"]
+    c_save["SaveButton.jsx"]
+    c_search["SearchBar.jsx (if present)"]
+  end
+  comp_dir --> components
+  components --> c_auth
+  components --> c_save
+  components --> c_search
+
+  subgraph pages [pages]
+    direction TB
+    p_dashboard["DashboardPage.jsx"]
+    p_city["CityPage.jsx"]
+    p_country["Countrypage.jsx"]
+  end
+  pages_dir --> pages
+  pages --> p_dashboard
+  pages --> p_city
+  pages --> p_country
+
+  %% Doc
+  doc --> folder_tree_svg["folder-tree.svg"]
+  doc --> mermaid_file["folder-architecture.mmd (this file)"]
+
+  classDef folder fill:#f9f,stroke:#333,stroke-width:1px;
+  class backend,frontend,db_dir,src_dir,queries_dir folder;
