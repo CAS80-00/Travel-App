@@ -95,6 +95,60 @@ const DashboardPage = () => {
     return `${maskedPrefix}${visibleSuffix}@${domain}`;
   };
 
+  const safeParseJSON = (value) => {
+    if (typeof value === "string") {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        console.warn("safeParseJSON failed:", e);
+        return null;
+      }
+    }
+    return value;
+  };
+
+  const getItineraryPointsArray = (points) => {
+    if (!points) return [];
+    // If it's a JSON string, attempt to parse
+    if (typeof points === "string") {
+      try {
+        const parsed = JSON.parse(points);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && typeof parsed === "object") {
+          if (Array.isArray(parsed.activePins)) {
+            const arr = [];
+            if (parsed.from) arr.push(parsed.from);
+            arr.push(...parsed.activePins);
+            if (parsed.to) arr.push(parsed.to);
+            return arr;
+          }
+          // Not a known object shape — return empty array
+          return [];
+        }
+      } catch (e) {
+        console.warn("Failed to parse itinerary points:", e);
+        return [];
+      }
+    }
+
+    // If already an array
+    if (Array.isArray(points)) return points;
+
+    // If it's an object with expected keys
+    if (points && typeof points === "object") {
+      if (Array.isArray(points.activePins)) {
+        const arr = [];
+        if (points.from) arr.push(points.from);
+        arr.push(...points.activePins);
+        if (points.to) arr.push(points.to);
+        return arr;
+      }
+      return [];
+    }
+
+    return [];
+  };
+
   const toggleSection = (section) => {
     setOpenSections((prev) => ({
       ...prev,
@@ -698,7 +752,7 @@ const DashboardPage = () => {
     let updatedPoints = [];
 
     if (existing) {
-      updatedPoints = JSON.parse(existing.points);
+      updatedPoints = getItineraryPointsArray(existing.points);
     }
 
     const pinExists = updatedPoints.some(
@@ -787,7 +841,7 @@ const DashboardPage = () => {
   // 8. Select Saved Itinerary and Show on Map Preview with Route
   const handleSelectItinerary = (itinerary) => {
     try {
-      const data = JSON.parse(itinerary.points);
+      const data = safeParseJSON(itinerary.points);
 
       if (data && data.from && data.to) {
         setFromLocation(data.from);
@@ -836,7 +890,7 @@ const DashboardPage = () => {
         }, 300);
       } else {
         // Fallback for older itineraries which were just flat pin lists
-        const points = JSON.parse(itinerary.points);
+        const points = getItineraryPointsArray(itinerary.points);
         if (points && points.length > 0) {
           setFromLocation(points[0]);
           setToLocation(points[points.length - 1]);
@@ -1024,7 +1078,7 @@ const DashboardPage = () => {
     if (!fromLocation || !toLocation) return;
     const match = itineraries.find((it) => {
       try {
-        const data = JSON.parse(it.points);
+        const data = safeParseJSON(it.points);
         return (
           data.from &&
           data.to &&
@@ -1735,7 +1789,7 @@ const DashboardPage = () => {
                             fontSize: "0.85rem",
                           }}
                         >
-                          {JSON.parse(itinerary.points).length} locations
+                          {getItineraryPointsArray(itinerary.points).length} locations
                         </span>
                       </button>
                       <button
